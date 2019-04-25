@@ -10,6 +10,7 @@ load(file='data/processed/waves_ubot.outer_east.df.RData')
 load(file='data/processed/waves_ubot.outer_east.sp.RData')
 load(file='data/processed/waves.outer_east.df.RData')
 load(file='data/processed/sediment.data.RData')
+load(file='data/processed/outer_sites.RData')
 load(file='data/processed/DH.zone.sp.RData')
 load(file='data/processed/DH.zone.df.RData')
 
@@ -37,6 +38,11 @@ wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, Outer.df$l
 sediment.data.outer = sediment.data[wch==1,]
 save(sediment.data.outer, file='data/processed/sediment.data.outer.RData')
 
+wch=point.in.polygon(outer_sites$Longitude, outer_sites$Latitude, Outer.df$long, Outer.df$lat)
+outer_sites.outer = outer_sites[wch==1,]
+save(outer_sites.outer, file='data/processed/outer_sites.outer.RData')
+
+
 ## ggplot() +
 ##   geom_polygon(data=East.arm.df, aes(y=lat, x=long, group=group), fill='white', color='black') +
 ##   geom_point(data=sediment.data.east, aes(y=Latitude, x=Longitude))
@@ -50,3 +56,12 @@ save(waves_east.sp, file='data/processed/waves_east.sp.RData')
 waves_ubot_east.sp=crop(mask(waves_ubot.outer_east.sp, a1), a1)
 save(waves_ubot_east.sp, file='data/processed/waves_ubot_east.sp.RData')
 
+a1=subset(DH.zone.sp, Name=='Outer Harbour')
+hydro_outer.sp=crop(mask(hydro.outer_east.sp, a1), a1)
+save(hydro_outer.sp, file='data/processed/hydro_outer.sp.RData')
+waves_outer.sp=crop(mask(waves.outer_east.sp, a1), a1)
+save(waves_outer.sp, file='data/processed/waves_outer.sp.RData')
+waves_ubot_outer.sp=crop(mask(waves_ubot.outer_east.sp, a1), a1)
+save(waves_ubot_outer.sp, file='data/processed/waves_ubot_outer.sp.RData')
+waves_ubot.outer.df = rasterToPoints(waves_ubot.outer.sp) %>% as.data.frame
+save(waves_ubot_outer.sp, file='data/processed/waves_ubot_outer.df.RData')

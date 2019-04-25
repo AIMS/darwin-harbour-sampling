@@ -5,7 +5,7 @@
 DHS_checkPackages <- function() {
     requiredPackages <- c('gdata', 'vegan','sp','maptools','tidyverse','raster',
                           'lubridate','INLA','mgcv','inlabru','gridExtra','clhs',
-                          'ggspatial','sf')
+                          'ggspatial','sf','MBHdesign','vegan')
     lapply(requiredPackages, require, character.only = TRUE)    
     p=installed.packages()[,'Package']
     if (!all(requiredPackages %in% p)) {
@@ -99,7 +99,7 @@ fitINLA.barriermodel = function(bndry, data, var, mesh.type='points',prior.range
                             offset = c(max.edge, bound.outer))
     } else if (mesh.type=='points') {
         mesh = inla.mesh.2d(loc=cbind(data$Longitude, data$Latitude),
-                            max.edge = c(0.5,2)*max.edge)#,
+                            max.edge = c(0.5,1)*max.edge)#,
                             #cutoff = 0.0005,
                             #offset = c(max.edge, bound.outer*4))
     }
@@ -202,12 +202,19 @@ fitINLA.barriermodel = function(bndry, data, var, mesh.type='points',prior.range
 
 
 
-inlaPredict = function(v, wch) {
-    load(file=paste0('data/processed/east.arm.mod_',v,'.RData'))
-    mod=east.arm.mod
+inlaPredict = function(v, wch, area='East Arm') {
+    if (area=='East Arm') {
+        load(file=paste0('data/processed/east.arm.mod_',v,'.RData'))
+        mod=east.arm.mod
+    } else {
+        load(file=paste0('data/processed/outer.mod_',v,'.RData'))
+            mod=outer.mod
+    }
+
     field = mod$mod$res$summary.random$s$mean + mod$mod$res$summary.fixed['m', 'mean']
     proj = inla.mesh.projector(mod$mesh, loc=wch)
-    rm('east.arm.mod','mod')
+    if (area=='East Arm') rm('east.arm.mod','mod')
+    if (area!='East Arm') rm('outer.mod','mod')
     gc()
     
     exp(inla.mesh.project(proj, field))
