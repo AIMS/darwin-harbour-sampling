@@ -457,8 +457,11 @@ g=ggplot() +
 ## East Arm samples
 East.arm.sp = subset(DH.zone.sp, Name=='East Arm')
 East.arm.df = broom::tidy(East.arm.sp)
+save(East.arm.sp, file='data/processed/East.arm.sp.RData')
+save(East.arm.df, file='data/processed/East.arm.df.RData')
 wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, East.arm.df$long, East.arm.df$lat)
 sediment.data.east = sediment.data[wch==1,]
+save(sediment.data.east, file='data/processed/sediment.data.east.RData')
 wch=point.in.polygon(priority_sites$Longitude, priority_sites$Latitude, East.arm.df$long, East.arm.df$lat)
 priority_sites.east = priority_sites[wch==1,]
 
@@ -481,10 +484,14 @@ ggsave('output/Map2a.png', g1, width=7, height=6, units='in', dpi=300)
 ## Outer Harbour samples
 Outer.sp = subset(DH.zone.sp, Name=='Outer Harbour')
 Outer.df = broom::tidy(Outer.sp)
+save(Outer.sp, file='data/processed/Outer.sp.RData')
+save(Outer.df, file='data/processed/Outer.df.RData')
 wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, Outer.df$long, Outer.df$lat)
 sediment.data.outer = sediment.data[wch==1,]
+save(sediment.data.outer, file='data/processed/sediment.data.outer.RData')
 wch=point.in.polygon(outer_sites$Longitude, outer_sites$Latitude, Outer.df$long, Outer.df$lat)
 outer_sites.outer = outer_sites[wch==1,]
+save(outer_sites.outer, file='data/processed/outer_sites.outer.RData')
 
 sf.poly=st_as_sf(Outer.sp)
 g2=ggplot() +
@@ -608,8 +615,9 @@ hydro = projectRaster(hydro,
               crs='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84') 
 ## now we need to apply a mask to narrow this to the focal area
 
+##outer_east.sp = rbind(east_arm.sp,outerharbour.sp,makeUniqueIDs = TRUE)
 outer_east.sp = rbind(east_arm.sp,outerharbour.sp,makeUniqueIDs = TRUE)
-hydro.outer_east.sp = b = crop(mask(hydro, outer_east.sp), outer_east.sp)
+hydro.outer_east.sp = crop(mask(hydro, outer_east.sp), outer_east.sp)
 hydro.outer_east.df = rasterToPoints(hydro.outer_east.sp) %>% as.data.frame
 save(hydro.outer_east.sp, file='data/processed/hydro.outer_east.sp.RData')
 save(hydro.outer_east.df, file='data/processed/hydro.outer_east.df.RData')

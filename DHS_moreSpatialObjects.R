@@ -22,25 +22,25 @@ save(DH.wh.sp, file='data/processed/DH.wh.sp.RData')
 save(DH.wh.df, file='data/processed/DH.wh.df.RData')
 
 
-East.arm.sp = subset(DH.zone.sp, Name=='East Arm')
-East.arm.df = broom::tidy(East.arm.sp)
-save(East.arm.sp, file='data/processed/East.arm.sp.RData')
-save(East.arm.df, file='data/processed/East.arm.df.RData')
-wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, East.arm.df$long, East.arm.df$lat)
-sediment.data.east = sediment.data[wch==1,]
-save(sediment.data.east, file='data/processed/sediment.data.east.RData')
+#East.arm.sp = subset(DH.zone.sp, Name=='East Arm')
+#East.arm.df = broom::tidy(East.arm.sp)
+#save(East.arm.sp, file='data/processed/East.arm.sp.RData')
+#save(East.arm.df, file='data/processed/East.arm.df.RData')
+#wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, East.arm.df$long, East.arm.df$lat)
+#sediment.data.east = sediment.data[wch==1,]
+#save(sediment.data.east, file='data/processed/sediment.data.east.RData')
 
-Outer.sp = subset(DH.zone.sp, Name=='Outer Harbour')
-Outer.df = broom::tidy(Outer.sp)
-save(Outer.sp, file='data/processed/Outer.sp.RData')
-save(Outer.df, file='data/processed/Outer.df.RData')
-wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, Outer.df$long, Outer.df$lat)
-sediment.data.outer = sediment.data[wch==1,]
-save(sediment.data.outer, file='data/processed/sediment.data.outer.RData')
+## Outer.sp = subset(DH.zone.sp, Name=='Outer Harbour')
+## Outer.df = broom::tidy(Outer.sp)
+## save(Outer.sp, file='data/processed/Outer.sp.RData')
+## save(Outer.df, file='data/processed/Outer.df.RData')
+## wch=point.in.polygon(sediment.data$Longitude, sediment.data$Latitude, Outer.df$long, Outer.df$lat)
+## sediment.data.outer = sediment.data[wch==1,]
+## save(sediment.data.outer, file='data/processed/sediment.data.outer.RData')
 
-wch=point.in.polygon(outer_sites$Longitude, outer_sites$Latitude, Outer.df$long, Outer.df$lat)
-outer_sites.outer = outer_sites[wch==1,]
-save(outer_sites.outer, file='data/processed/outer_sites.outer.RData')
+## wch=point.in.polygon(outer_sites$Longitude, outer_sites$Latitude, Outer.df$long, Outer.df$lat)
+## outer_sites.outer = outer_sites[wch==1,]
+## save(outer_sites.outer, file='data/processed/outer_sites.outer.RData')
 
 
 ## ggplot() +

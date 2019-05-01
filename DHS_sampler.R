@@ -5,7 +5,12 @@ library(BalancedSampling)
 source('DHS_config.R')
 
 load(file='data/processed/raster.masks.comb.RData')
-
+load(file='data/processed/hard_seabed_EA.sp.RData')
+load(file='data/processed/shipping.sp.RData')
+load(file='data/processed/port.sp.RData')
+load(file='data/processed/boun.sp.RData')
+load(file='data/processed/naval.sp.RData')
+load(file='data/processed/hard_seabed_EA.sp.RData')
 
 l = list.files(path='data/processed', pattern='east.arm.pred.rast')
 nms = gsub('east.arm.pred.rast\\_(.*)\\..*','\\1',l)
@@ -17,6 +22,11 @@ for (i in l) {
 }
 names(rasters) <- nms
 
+#Generate shapefile of 
+combined.masks=rasterToPolygons(raster.masks.comb)
+tmaptools::write_shape(combined.masks, file='data/processed/CombinedMask.shp')
+
+
 ## Apply the masks
 rasters = mask(rasters, rasterToPolygons(raster.masks.comb))
 plot(rasters)
@@ -24,6 +34,8 @@ rasters = mask(rasters, shipping.sp, inverse=TRUE)
 rasters = mask(rasters, port.sp, inverse=TRUE)
 rasters = mask(rasters, boun.sp, inverse=TRUE)
 rasters = mask(rasters, naval.sp, inverse=TRUE)
+rasters = mask(rasters, hard_seabed_EA.sp, inverse=TRUE)
+
 
 ## plot(east.arm.pred.rast)
 ## plot(raster.masks.comb, add=TRUE)
@@ -656,6 +668,7 @@ names(rasters) <- nms
 rasters = mask(rasters, rasterToPolygons(raster.masks.comb))
 plot(rasters)
 rasters = mask(rasters, shipping.sp, inverse=TRUE)
+rasters = mask(rasters, hard_seabed_OH.sp, inverse=TRUE)
 
 s = rasterToPoints(rasters, spatial=TRUE)
 A=NULL
