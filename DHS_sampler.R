@@ -24,6 +24,9 @@ names(rasters) <- nms
 
 #Generate shapefile of 
 combined.masks=rasterToPolygons(raster.masks.comb)
+temp_data = combined.masks@data %>% summarize(OBJECT='East Arm energy mask')
+combined.masks  <- unionSpatialPolygons(combined.masks ,ID=rep(1, length(combined.masks$layer)))
+combined.masks = SpatialPolygonsDataFrame(combined.masks, data=temp_data)
 tmaptools::write_shape(combined.masks, file='data/processed/CombinedMask.shp')
 
 
@@ -655,6 +658,24 @@ ggsave(filename='output/SamplingEffortMin.png', g2, width=10, height=5, units='i
 
 
 ## Now for the Outer Harbour ==================*****************************++++++++++++++++++++===============================================
+
+## We need to make a complex mask that comprises
+## 1. combined raster masks (energy mask)
+## 2. a polygon based on Habitat Offsets shallow outer harbour sites
+##    - create a concave hull around the points (0.4) (made in qgis)
+#habsites = read.csv('data/primary/HabitatMappingOuterHarbour.csv')
+#plot(habsites)
+hab_offset_buffer.sp<- maptools:::readShapeSpatial("data/GIS/Habitat_Offset_buffer.shp",
+                                          proj4string = CRS('+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs'),repair=TRUE,force_ring=T,verbose=TRUE)
+plot(hab_offset_buffer.sp)
+## 3. Hard_Seabed_OH
+##    - fix geometries - I did this in qgis
+hard_seabed_OH.sp<- maptools:::readShapeSpatial("data/GIS/Hard_Seabed_OH_corrected_geometries.shp",
+                                          proj4string = CRS('+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs'),repair=TRUE,force_ring=T,verbose=TRUE)
+
+## Step 1.  Clip the energy mask with the habitat offsets polygon (Clipped)
+## Step 2.  Difference the Clipped vector layer with the fixed hard seabed
+
 load(file='data/processed/raster.masks.comb_outer.RData')
 
 l = list.files(path='data/processed', pattern='outer.pred.rast')
@@ -665,9 +686,39 @@ for (i in l) {
     rasters= stack(rasters, outer.pred.rast)
 }
 names(rasters) <- nms
+
+#Generate shapefile of 
+combined.masks_outer=rasterToPolygons(raster.masks.comb)
+temp_data = combined.masks_outer@data %>% summarize(OBJECT='Outer harbour energy mask')
+combined.masks_outer  <- unionSpatialPolygons(combined.masks_outer ,ID=rep(1, length(combined.masks_outer$layer)))
+combined.masks_outer = SpatialPolygonsDataFrame(combined.masks_outer, data=temp_data)
+tmaptools::write_shape(combined.masks_outer, file='data/processed/CombinedMask_outer.shp')
+
+## Clip combined.masks_outer by hab_offset_buffer.sp
+a = gIntersection(combined.masks_outer, hab_offset_buffer.sp)
+plot(a)
+## Clip the above with hard_seabed_OH.sp
+b = gDifference(a, hard_seabed_OH.sp)
+plot(b)
+tmaptools::write_shape(SpatialPolygonsDataFrame(b, data=data.frame(FEATURE=1)), file='data/processed/Mask_outer.shp')
+
+##raster.masks.comb =
+#r=raster(extent(b),crs=CRS('+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84'))
+#bb=raster::rasterize(b,r)
+bb=raster::rasterize(b,raster.masks.comb) # note, I am using the
+                                        # orginal raster.masks.comb as
+                                        # the reference raster here
+                                        # from which to get the xy
+                                        # cell resolution
+plot(bb)
+raster.masks.comb=bb
+plot(raster.masks.comb)
+
 rasters = mask(rasters, rasterToPolygons(raster.masks.comb))
 plot(rasters)
 rasters = mask(rasters, shipping.sp, inverse=TRUE)
+## The next line is superfluous as the hard seabed has already been
+## masked out above
 rasters = mask(rasters, hard_seabed_OH.sp, inverse=TRUE)
 
 s = rasterToPoints(rasters, spatial=TRUE)
@@ -1051,6 +1102,15 @@ g=ggplot() +
 ggsave(filename='output/SamplingDesign_spatiallybalancedMin2_outer.pdf', g, width=6, height=5)
 ggsave(filename='output/SamplingDesign_spatiallybalancedMin2_outer.png', g, width=6, height=5, units='in', dpi=300)
 
+spatiallybalanced.design_50 = spatiallybalanced.data2.best %>% filter(N==50) %>%
+    dplyr::select(Longitude=x, Latitude=y)
+write_csv(spatiallybalanced.design_50, path='output/spatiallybalanced2.design_50_outer.csv')
+spatiallybalanced.design_80 = spatiallybalanced.data2.best %>% filter(N==80) %>%
+    dplyr::select(Longitude=x, Latitude=y)
+write_csv(spatiallybalanced.design_80, path='output/spatiallybalanced2.design_80_outer.csv')
+spatiallybalanced.design_90 = spatiallybalanced.data2.best %>% filter(N==90) %>%
+    dplyr::select(Longitude=x, Latitude=y)
+write_csv(spatiallybalanced.design_90, path='output/spatiallybalanced2.design_90_outer.csv')
 spatiallybalanced.design_100 = spatiallybalanced.data2.best %>% filter(N==100) %>%
     dplyr::select(Longitude=x, Latitude=y)
 write_csv(spatiallybalanced.design_100, path='output/spatiallybalanced2.design_100_outer.csv')
