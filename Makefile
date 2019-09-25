@@ -121,6 +121,9 @@ figures::
 	pdftops -eps -level3 $${image_file}; \
 	done;
 
+reportfigures:
+	cat DHS.Rmd | sed -n '/%.Darwin/,/^Conclusions$/p' | sed -n 's/!\[.*\](\(.*\)){.*}/\1/p' | xargs zip figures.zip
+
 clean:
 	rm *.toc *.aux *.pdf *.ps *.eps *.log *.lof *.bib *.bbl *.blg *.dvi *.tex *.map *.md
 zip:
