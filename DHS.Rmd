@@ -4,8 +4,7 @@
 
 <top>
  
-  
-   
+ 
 Synopsis
 ==========
 
@@ -32,23 +31,23 @@ then helped tune and evaluate a range of sampling designs.
 3. Offset shallow Outer Harbour sediment survey provided by Lynda
    Radke (as an Excel workbook).  Similar to the Munksgaard, data
    these data provided background information for the Outer
-   Harbour
+   Harbour.
 
 The basic procedure involved the following steps:
 
-1. Read in a process the data sources
+1. Read in a process the data sources.
 2. Fit a barrier spatial model to each of the Munksgaard sediment
-chemicals and predict/develop spatial layers for the East Arm section
+chemicals and predict/develop spatial layers for the East Arm section.
 3. Fit a barrier spatial model to each of the Offset shallow Outer
    Harbour sediment chemicals and predict/develop spatial layers for
    the Outer Harbour.
 4. Develop masks out of the hydrodynamic model data and use them to
-exclude areas of likely erosion from the chemical spatial layers
+exclude areas of likely erosion from the chemical spatial layers.
 5. Use spatial layers representing shipping channels, ports and other
 exclusion zones to establish additional masks to apply alongside
 hydrodynamic modelling masks to further restrict the sampling domains
 and prevent sampling configurations containing sites in the exclusion
-zones
+zones.
 6. Explore three different sample generation routines for a range of
 sample sizes to establish an optimal sampling design.  The five
 routines will be:
@@ -67,7 +66,7 @@ routines will be:
    dimensions (spatial and according to patterns in the underlying chemical distributions).
    
 In addition to the 100 long-term monitoring sites, there are 20
-priority sites.  These sites are to be sampled more regularly and are
+designated sites.  These sites are to be sampled more regularly and are
 for the purpose of compliance monitoring specific areas.  Although
 these sites are additional to the long-term samples, they do form part
 of the overall design and thus need to be considered when considering
@@ -98,12 +97,12 @@ Munksgaard 2012 chemical sediment data were provided by Lynda Radke in
 the form of an Excel workbook.  These data were consolidated together
 into a single flat csv text file to support analyses.  The spatial
 configuration of the Munksgaard sediment sampling sites are
-illustrated in Figure @fig:Map2 (circular points).  Primarily, only
+illustrated in Figure @fig:Map2 (circular points).  Primarily only
 the sites within the Outer Harbour and East Arm will be used to inform
 the current exploration of future sampling
 designs.  
 
-Note, while the coverage of East Arm sites was extensive, the Outer
+Note: while the coverage of East Arm sites was extensive, the Outer
 Harbour sites were clustered together in the south east corner of the
 Outer Harbour (see Figure @fig:Map2).  The use of these Munksgaard
 2012 Outer Harbour sediment data to estimate the underlying patterns
@@ -123,17 +122,17 @@ spatial configuration of the Offset Outer Harbour sediment sampling
 sites are illustrated in Figure @fig:Map2 (square ponts).  These data
 were used to inform the selection of Outer Harbour sites.
 
-## Priority sampling sites
+## Designated sampling sites
 
 In addition to the long-term monitoring sites, a number of more
-regularly sampled priority sites were provided by Lynda Radke in the
+regularly sampled designated sites were provided by Lynda Radke in the
 form of an Excel workbook.  These sites formed additional sites, yet
 they needed to be considered in the formulation on site configurations
-and are illustrated in Figure @fig:Map2 as red points.  Note, none of
-the priority sites fall in the defined Outer Harbour and East Arms
+and are illustrated in Figure @fig:Map2 as red points.  Note: none of
+the designated sites fall in the defined Outer Harbour and East Arms
 regions and thus they were not considered further.
 
-![Map of Darwin Harbour indicating the spatial configuration of Munksgaard 2012 sediment monitoring sites (dots).  Solid dots signify sites within the Outer Harbour and East Arm focal areas.  Black circular points represent Munksgaard 2012 sediment sampling sites, square points represent Offset Outer Harbour sediment sites and red points represent priority sites.](output/Map2.pdf){#fig:Map2 width=80%}
+![Map of Darwin Harbour indicating the spatial configuration of Munksgaard 2012 sediment monitoring sites (dots).  Solid dots signify sites within the Outer Harbour and East Arm focal areas.  Black circular points represent Munksgaard 2012 sediment sampling sites, square points represent Offset Outer Harbour sediment sites and red points represent designated sites.](output/Map2.pdf){#fig:Map2 width=80%}
 
 <!-- the above figure is generated in DHS_readData.R -->  
 
@@ -255,7 +254,7 @@ same model and were thus closely correlated.  Similarly, both wave
 derived orbital velocity and wave derived seabed shear stress were
 correlated.  In each case, the shear stress proxies are intended to be
 expressions of the forces that are likely to be acting on the seabed
-(from tides and waves respectively).  Hence, only the seabed shear
+(from tides and waves respectively).  Hence only the seabed shear
 stress versions of the hydrodynamic and wave models were used as the
 proxy estimates of tidal and wave forces.
 
@@ -324,16 +323,17 @@ illustrated in Figure @fig:mask_outer for Outer Harbour.
 In addition to using hydrodynamic modelling masks to exclude areas
 that might be considered unsuitable for sediment monitoring, there are
 areas throughout Darwin Harbour that are not practical or appropriate
-for monitoring.  These include the shipping channel and port exclusion
+for monitoring.  These include the areas of a high probability of hard 
+seabed [@Siwabessy-2019], shipping channel and port exclusion
 zones as well as other exclusions zones associated with major
 infrastructure of military bases.  Hence additional masks were
 developed from spatial
-layers provided by Lynda Radke.  
+layers provided by Lynda Radke.
 
 Figures @fig:Map3a and @fig:Map3b illustrate the sampling masks
 associated with East Arm and Outer Harbour respectively.
 
-![East Arm mask derived from numerous exclusion zone shapefiles.  The blue areas represent the spatial domain avaialble for sampling.  The black dots illustrate the position of Munksgaard 2012 sediment sampling sites.  Red dots represent the priority sites.  Open black and red circles represent samples that are outside of the East Arm area.](output/Map3a.pdf){#fig:Map3a width=70%}
+![East Arm mask derived from numerous exclusion zone shapefiles.  The blue areas represent the spatial domain avaialble for sampling.  The black dots illustrate the position of Munksgaard 2012 sediment sampling sites.  Red dots represent the designated sites.  Open black and red circles represent samples that are outside of the East Arm area.](output/Map3a.pdf){#fig:Map3a width=70%}
 
 
 ![Outer Harbour mask derived from numerous exclusion zone shapefiles.  The blue areas represent the spatial domain avaialble for sampling.  The black dots illustrate the position of Outer Harbour sediment sampling sites.  Open black circles represent samples that are outside of the Outer Harbour area.](output/Map3b.pdf){#fig:Map3b width=70%}
@@ -368,7 +368,7 @@ methodologies are required.
 
 Ecological and environmental processes are often correlated through
 space.  To account for these spatial dependencies within a spatial
-model, it is useful to incorporate a Gaussian Random Field (GRF) which
+model it is useful to incorporate a Gaussian Random Field (GRF) which
 specifies a spatially dependent covariance structure in which
 locations that are closer to one another in space will in general be
 more highly correlated to one another than locations that are further
@@ -486,7 +486,7 @@ data than the exact values of the observed data.
 Sampling
 =============
 
-Ideally, a good sampling design should comprise of a configuration of
+Ideally, a good sampling design should comprise a configuration of
 sites that collectively represent the broader area as efficiently as
 possible.  In this context, efficiency is a compromise between
 complete representation (resulting from saturating the spatial domain
@@ -675,10 +675,10 @@ sample size of 100 also accommodates a buffer against sample
 loss. Nevertheless, this entire simulation process is contingent on a
 number of unverifiable assumptions:
 
-1. that the Munksgaard 2012 sediment sampling data are representative of the typical conditions and spatial patterns
-2. all Munksgaard 2012 sediment chemicals are equally useful and informative
-3. the INLA models are able to fully represent the true underlying conditions
-4. the costs and logistics of sampling are equal irrespective of location 
+1. that the Munksgaard 2012 sediment sampling data are representative of the typical conditions and spatial patterns.
+2. all Munksgaard 2012 sediment chemicals are equally useful and informative.
+3. the INLA models are able to fully represent the true underlying conditions.
+4. the costs and logistics of sampling are equal irrespective of location.
 
 The conditioned latin hypercube sampling technique consistently
 outperforms the other techniques.  Interestingly, there was very
@@ -753,10 +753,10 @@ also accommodates a buffer against sample loss. Nevertheless, this
 entire simulation process is contingent on a number of unverifiable
 assumptions:
 
-1. that the Offset Outer Harbour sediment sampling data are representative of the typical conditions and spatial patterns
-2. all Offset Outer Harbour sediment chemicals are equally useful and informative
-3. the INLA models are able to fully represent the true underlying conditions
-4. the costs and logistics of sampling are equal irrespective of location 
+1. that the Offset Outer Harbour sediment sampling data are representative of the typical conditions and spatial patterns.
+2. all Offset Outer Harbour sediment chemicals are equally useful and informative.
+3. the INLA models are able to fully represent the true underlying conditions.
+4. the costs and logistics of sampling are equal irrespective of location. 
 
 Contrary to the situation for the East Arm area, the conditioned latin
 hypercube sampling technique only outperformed the other techniques at
@@ -797,7 +797,7 @@ As a result, this second of the investigation will be postponed until further co
 
 <!--
 
-candidate sampling configurations are generated in a manner that minimizes deviations from the original
+Candidate sampling configurations are generated in a manner that minimizes deviations from the original
 latin hypercube and thus yields sampling locations that are most likely to represent the complex underlying conditions.  
 
 Whist originally devised by McKay 1979 to improve the speed of computationally expensive operations (such as
@@ -919,4 +919,4 @@ sessionInfo()
 References
 ====================
 
- 
+

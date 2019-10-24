@@ -19,7 +19,7 @@ DOCX = $(patsubst %.Rmd,%.Dmd,$(RmdFILES))
 TARGET = DHS
 PANDOC_ARGS=-s -S -i --template='/home/murray/Work/Resources/Scripts/pandoc/template' --bibliography='/home/murray/Work/Resources/References/References.bib' --reference-links 
 PANDOC_SC_ARGS =-s -S -i --template='/home/murray/Resources/Scripts/pandoc/template_sc' --bibliography='/home/murray/Work/Resources/References/References.bib'  --reference-links  --self-contained #--csl '/home/murray/Work/Resources/References/oecologia.csl'
-PANDOC_XELATEX_ARGS = --filter pandoc-fignos -s --template='/home/murray/Work/Resources/Scripts/pandoc/default' --bibliography='/home/murray/Work/Resources/References/References.bib' --reference-links -N --pdf-engine=xelatex --toc #--csl '/home/murray/Work/Resources/References/oecologia.csl' 
+PANDOC_XELATEX_ARGS = --filter pandoc-fignos -s --template='default' --bibliography='/home/murray/Work/Resources/References/References.bib' --reference-links -N --pdf-engine=xelatex --toc #--csl '/home/murray/Work/Resources/References/oecologia.csl' 
 XELATEX_ARGS=--interaction=nonstopmode --output-driv="xdvipdfmx -vv -V 4"
 XELATEX_ARGS=--interaction=batchmode
 PANDOC_DOC_ARGS=  -s -S -i --bibliography='/home/murray/Work/Resources/References/References.bib'  #--csl '/home/murray/Work/Resources/References/oecologia.csl' --reference-docx='/home/murray/Work/Resources/Templates/AIMS.docx'
