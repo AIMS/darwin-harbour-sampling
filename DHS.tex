@@ -42,6 +42,7 @@
 % using explicit options in \includegraphics[width, height, ...]{}
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 
+
 \usepackage{framed}
 \makeatletter
 \newenvironment{kframe}{%
@@ -128,9 +129,9 @@
 \newcommand\BackgroundPic{
 \put(-5,0){
 \parbox[b][\paperheight]{\paperwidth}{%
-\includegraphics[width=220mm, height=20mm]{header.JPG}%
+\includegraphics[width=220mm, height=30mm, keepaspectratio]{header.JPG}%
 \vfill
-\includegraphics[width=205mm]{AIMS_footer_new07-09.jpg}%
+\centering\scriptsize{\includegraphics[width=205mm, keepaspectratio]{AIMS_footer_new07-09.jpg}}%
 }}}
 %
 % 
@@ -388,6 +389,1454 @@
 \hypertarget{synopsis}{%
 \section{Synopsis}\label{synopsis}}
 
+The purpose of this work was to inform the spatial component of the
+Darwin Harbour Sediment Monitoring sampling design. In particular, to
+determine the `best' location for 100 sediment monitoring sites in the
+East Arm and Outer Harbour sections of Darwin Harbour.
+
+To help inform this process, there were three broad sources of data
+available:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Hydrodynamic modelling of the entire Darwin Harbour. These data
+  (availed via geoTiffs), comprise broadly tidal bed shear and velocity
+  as well as wave driven forces at 10m resolution and will be used to
+  isolate areas likely to experience deposition (rather than erosion) of
+  sediments.
+\item
+  Munksgaard sediment chemical survey from 2012 provided by Lynda Radke
+  (as an Excel workbook). These data provided background information
+  that was used to predict the full spatial distribution of a range of
+  sediment chemicals. These spatial distributions then helped tune and
+  evaluate a range of sampling designs.
+\item
+  Offset shallow Outer Harbour sediment survey provided by Lynda Radke
+  (as an Excel workbook). Similar to the Munksgaard, data these data
+  provided background information for the Outer Harbour
+\end{enumerate}
+
+The basic procedure involved the following steps:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Read in a process the data sources
+\item
+  Fit a barrier spatial model to each of the Munksgaard sediment
+  chemicals and predict/develop spatial layers for the East Arm section
+\item
+  Fit a barrier spatial model to each of the Offset shallow Outer
+  Harbour sediment chemicals and predict/develop spatial layers for the
+  Outer Harbour.
+\item
+  Develop masks out of the hydrodynamic model data and use them to
+  exclude areas of likely erosion from the chemical spatial layers
+\item
+  Use spatial layers representing shipping channels, ports and other
+  exclusion zones to establish additional masks to apply alongside
+  hydrodynamic modelling masks to further restrict the sampling domains
+  and prevent sampling configurations containing sites in the exclusion
+  zones
+\item
+  Explore three different sample generation routines for a range of
+  sample sizes to establish an optimal sampling design. The five
+  routines will be:
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii})}
+  \tightlist
+  \item
+    Using the masked chemical spatial layers to inform Conditioned
+    Latent Hypercube Sampling - this will generate samples of nominated
+    sizes that are located in a manner that most represents the
+    underlying patterns in the chemical spatial layers.
+  \item
+    Completely random sampling - this will select the nominated number
+    of samples from within the masked area and is completely naive to
+    any underlying spatial patterns (and hence is only likely to be
+    representative of the underlying patterns when the number of samples
+    is large).
+  \item
+    A regular sampling grid - this will select approximately the
+    nominated number of samples configured in a regular grid within the
+    masked area. Like the completely random sampling, the regular
+    sampling grid is completely naive to the underlying spatial
+    patterns, yet it does guarantee a more even spatial coverage.
+  \item
+    A spatially balanced design - this will yield a spatially balanced
+    design in which sampling sites are spread out throughout the spatial
+    domain.
+  \item
+    A high dimensional spatially balanced design - this will yield a
+    design in which sampling sites are spread in multiple dimensions
+    (spatial and according to patterns in the underlying chemical
+    distributions).
+  \end{enumerate}
+\end{enumerate}
+
+In addition to the 100 long-term monitoring sites, there are 20 priority
+sites. These sites are to be sampled more regularly and are for the
+purpose of compliance monitoring specific areas. Although these sites
+are additional to the long-term samples, they do form part of the
+overall design and thus need to be considered when considering candidate
+configurations.
+
+All code for this project is available on github
+\url{https://github.com/AIMS/darwin-harbour-sampling.git}
+
+\hypertarget{data-processing}{%
+\section{Data processing}\label{data-processing}}
+
+\hypertarget{gis-data}{%
+\subsection{GIS data}\label{gis-data}}
+
+A shapefile of Darwin Harbour (see Figure \ref{fig:Map1}) was utilized
+in order to define the initial sampling domain(s). This project focused
+on the Outer Harbour and East Arm. For the purpose of the sediment
+monitoring program, East Arm was defined as East Arm, Elizabeth River
+and a section of the Middle Harbour adjacent the city of Darwin. The
+Outer Harbour was defined as Outer Harbour and Shoal Bay.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.7\textwidth,height=\textheight]{output/Map1.pdf}
+\caption{Map of Darwin Harbour highlighting the Outer Harbour and East
+Arm sections.\label{fig:Map1}}
+\end{figure}
+
+\hypertarget{munksgaard-2012-chemical-sediment-data}{%
+\subsection{Munksgaard 2012 chemical sediment
+data}\label{munksgaard-2012-chemical-sediment-data}}
+
+Munksgaard 2012 chemical sediment data were provided by Lynda Radke in
+the form of an Excel workbook. These data were consolidated together
+into a single flat csv text file to support analyses. The spatial
+configuration of the Munksgaard sediment sampling sites are illustrated
+in Figure \ref{fig:Map2} (circular points). Primarily, only the sites
+within the Outer Harbour and East Arm will be used to inform the current
+exploration of future sampling designs.
+
+Note, while the coverage of East Arm sites was extensive, the Outer
+Harbour sites were clustered together in the south east corner of the
+Outer Harbour (see Figure \ref{fig:Map2}). The use of these Munksgaard
+2012 Outer Harbour sediment data to estimate the underlying patterns
+throughout the entire Outer Harbour was not appropriate. Any modelling
+patterns are only reliable within the spatial bounds of the available
+data. Any attempts to extrapolate to a broader area (e.g.~the rest of
+the Outer Harbour), is not appropriate. Consequently, and unfortunately,
+the Munksgaard sediment data were of little utility for designing a
+sampling program for the Outer Harbour.
+
+\hypertarget{offset-outer-harbour-sediment-monitoring-data}{%
+\subsection{Offset Outer Harbour sediment monitoring
+data}\label{offset-outer-harbour-sediment-monitoring-data}}
+
+Offset Outer Harbour sediment monitoring data were provided by Lynda
+Radke in the form of an Excel workbook. These data were consolidated
+together into a single flat csv text file to support analyses. The
+spatial configuration of the Offset Outer Harbour sediment sampling
+sites are illustrated in Figure \ref{fig:Map2} (square ponts). These
+data were used to inform the selection of Outer Harbour sites.
+
+\hypertarget{priority-sampling-sites}{%
+\subsection{Priority sampling sites}\label{priority-sampling-sites}}
+
+In addition to the long-term monitoring sites, a number of more
+regularly sampled priority sites were provided by Lynda Radke in the
+form of an Excel workbook. These sites formed additional sites, yet they
+needed to be considered in the formulation on site configurations and
+are illustrated in Figure \ref{fig:Map2} as red points. Note, none of
+the priority sites fall in the defined Outer Harbour and East Arms
+regions and thus they were not considered further.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/Map2.pdf}
+\caption{Map of Darwin Harbour indicating the spatial configuration of
+Munksgaard 2012 sediment monitoring sites (dots). Solid dots signify
+sites within the Outer Harbour and East Arm focal areas. Black circular
+points represent Munksgaard 2012 sediment sampling sites, square points
+represent Offset Outer Harbour sediment sites and red points represent
+priority sites.\label{fig:Map2}}
+\end{figure}
+
+\newpage
+
+\hypertarget{hydrodynamic-and-wave-modelling}{%
+\subsection{Hydrodynamic and wave
+modelling}\label{hydrodynamic-and-wave-modelling}}
+
+When designing a sediment monitoring program, it is important to
+consider the erosive, transportation and deposition forces operating on
+the seabed. Ideally all, if not most, of the sampling sites should be
+located in areas that are more likely to experience sediment deposition
+than erosion or transportation.
+
+Various hydrodynamic and wave modelling products were made available by
+Dr.~Richard Brinkman (AIMS) that provide estimates of erosive,
+transportation and deposition likelihoods and include:
+
+\begin{itemize}
+\tightlist
+\item
+  current velocity (50th and 75 percentiles - these were calculated from
+  a 30 day characteristic spring-neap tidal cycle. Higher velocity
+  equates to higher likelihood of sediment transport and erosion and
+  thus lower probability of sediment deposition.
+\item
+  seabed shear stress (50th and 75 percentiles - these were derived from
+  the current velocity and are a measure of the shear forces likely to
+  be experienced on the sea bed due to tidal movement. Higher bed shear
+  stress equates to higher likelihood of sediment transport and erosion
+  and thus lower probability of sediment deposition.
+\item
+  wave derived orbital velocity magnitude at seabed - a shallow water
+  wave model was applied using a 10 m/s wind forcing from a range of
+  directions (0, 90, 140, 270 and 315 degrees) to simulate the likely
+  orbital velocity experienced by the seabed. Higher orbital velocity
+  equates to a higher likelihood of sediment transport and erosion and
+  thus lower probability of sediment deposition.
+\item
+  wave derived seabed shear stress - the same shallow water wave model
+  was expressed in terms of wave bed shear stress. Higher shear stress
+  equates to higher likelihood of sediment transport and erosion and
+  thus lower probability of sediment deposition.
+\end{itemize}
+
+Visual representations of each of the above products within the Outer
+Harbour and East Arm focal areas are depicted in Figures
+\ref{fig:hydro_outer} -- \ref{fig:waves_east}.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/hydro_outer.png}
+\caption{Outer Harbour extract of four hydrodynamic modeling tidal
+products.\label{fig:hydro_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/hydro_east.png}
+\caption{East Arm extract of four hydrodynamic modeling tidal
+products.\label{fig:hydro_east}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/waves_ubot_outer.png}
+\caption{Outer Harbour extract of five hydrodynamic modeling wave
+products. The different products represent different wind angles (0, 90,
+140, 270 and 315 degrees).\label{fig:waves_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/waves_ubot_east.png}
+\caption{East Arm extract of five hydrodynamic modeling wave products.
+The different products represent different wind angles (0, 90, 140, 270
+and 315 degrees).\label{fig:waves_east}}
+\end{figure}
+
+\hypertarget{masks}{%
+\subsubsection{Masks}\label{masks}}
+
+The seabed shear stress products provided spatial modelling of the
+expected forces acting on the sea bed during a typical spring-neap tidal
+cycle. In so doing, they provided proxies for the likelihood for
+sediment erosion, transportation and deposition. These products were
+used to create masks that exclude areas of high erosive or
+transportation potential.
+
+To establish a mask (to focus only on deposition areas), thresholds need
+to be established for what represent the critical values below which
+deposition is likely. Figures \ref{fig:Hjulstroms} and
+\ref{fig:shearStress} provide these for a range of sediment particle
+sizes for water velocity and sea bed stress respectively.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{data/Provided/hjulstrom.jpg}
+\caption{Hjulstrom Curve linking sediment size and the velocity needed
+to erode, transport or deposit (from
+\url{https://www.thegeoroom.co.zw/hydrology/hjulstrom-curve.php}).\label{fig:Hjulstroms}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.6\textwidth,height=\textheight]{data/Provided/Critical-bed-shear-stress-C-for-erosion-of-continental-margin-particles-showing-the_W640.jpg}
+\caption{Critical bed shear stress for erosion and particle settling
+velocity of a range of particle sizes from Thomsen
+(2002)\label{fig:shearStress}}
+\end{figure}
+
+\hypertarget{east-arm-sampling-domain}{%
+\paragraph{East Arm sampling domain}\label{east-arm-sampling-domain}}
+
+Figure \ref{fig:particle_sizes} illustrates the distribution of
+percentage abundance of a range of particle sizes class categories from
+the Munksgaard sampling program. On average, particles in the size
+classes 4-62\(\mu\)m (Silt) and 62-250\(\mu\)m (fine sand) made up 25.4
+and 43.4 percent of the sediment samples respectively. Hence, it was
+important that future East Arm sampling designs focus on sites that will
+ensure deposition of particles of these sizes. According to Figures
+\ref{fig:Hjulstroms} and \ref{fig:shearStress}, particles at or above
+29\(\mu\)m (middle of the silt range) correspond to critical deposition
+values of approximately 0.2 m/s velocity and 0.1 seabed shear stress.
+
+The hydrodynamic modeling seabed shear stress products represent the
+50th and 75th percentile values. In the case of the 50th percentile,
+this means that 50 percent of the time, seabed shear stress was
+estimated to be above this value and 50 percent of values where below.
+If a mask was based on setting the threshold to correspond to the 50th
+percentile, then the masked layer represents areas where sediment
+deposition is likely to occur more regularly than erosion and transport.
+
+Nevertheless, it was important to also establish the distribution of
+seabed shear stress across the seabed in order to better understand the
+distribution of values. Figures \ref{fig:hist_hydro_east} and
+\ref{fig:hist_waves_east} illustrate the frequency of seabed shear
+stresses (and velocity) for the East Arm area. The 50th percentiles for
+seabed shear stress appear to drop off the peak at around 0.2 m/s, hence
+this appears to be a sensible threshold value.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/particle_sizes.pdf}
+\caption{The percentage abundance of different sediment grain sizes
+observed across the Munksgaard sediment sampling
+program.\label{fig:particle_sizes}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_hydro_east.pdf}
+\caption{Frequency distributions of hydrodynamic products in the East
+Arm area.\label{fig:hist_hydro_east}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_waves_east.pdf}
+\caption{Frequency distributions of wave modelling seabed shear stress
+products in the East Arm area.\label{fig:hist_waves_east}}
+\end{figure}
+
+Both current velocity and seabed shear stress were derived from the same
+model and were thus closely correlated. Similarly, both wave derived
+orbital velocity and wave derived seabed shear stress were correlated.
+In each case, the shear stress proxies are intended to be expressions of
+the forces that are likely to be acting on the seabed (from tides and
+waves respectively). Hence, only the seabed shear stress versions of the
+hydrodynamic and wave models were used as the proxy estimates of tidal
+and wave forces.
+
+Figure \ref{fig:masks} illustrates the resulting masks for the East Arm
+area using a threshold of 0.2 m/s (or 0.3 m/s for the 75th percentiles).
+Each of the wave derived seabed shear masks were added together and then
+joined with the 50 percentile hydrodynamic seabed shear mask. The
+resulting mask is illustrated in Figure \ref{fig:mask_east}. This mask
+represents (in blue shading) the areas most likely to experience more
+deposition than erosion and thus suitable areas for sediment monitoring.
+When we compared this mask to the spatial extent of the Munksgaard 2012
+sediment monitoring site configuration, it was evident that while they
+broadly overlap, there was substantially less suitable area in the
+region adjacent to the City and substantially more in the East Arm
+reaches.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.9\textwidth,height=\textheight]{output/masks.png}
+\caption{Individual East Arm masks from various hydrodynamic
+(bedShear\_\emph{) and wave (beagle\_}) models categorised using a
+threshold values of 0.2 for all other than the 75th percentile products
+with use a threshold of 0.3 m/s. The blue areas indicate areas of
+predicted relatively low erosion and transport potential and thus good
+candidate areas for sample site allocation. The black dots illustrate
+the position of Munksgaard 2012 sediment sampling
+sites.\label{fig:masks}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/masks1.png}
+\caption{East Arm mask derived from the combination of 50th percentile
+seabed shear stress and each of the wave derived seabed shear stresses.
+The blue areas indicate areas of predicted relatively low erosion and
+transport potential and thus good candidate areas for sample site
+allocation. The black dots illustrate the position of Munksgaard 2012
+sediment sampling sites.\label{fig:mask_east}}
+\end{figure}
+
+\hypertarget{outer-harbour-sampling-domain}{%
+\subsection{Outer Harbour sampling
+domain}\label{outer-harbour-sampling-domain}}
+
+Figure \ref{fig:particle_sizes.outer} illustrates the distribution of
+percentage abundance of a range of particle sizes class categories from
+the Offsets Outer Harbour sampling program. The majority of particles
+were classified as sand. Based on Figures \ref{fig:Hjulstroms} and
+\ref{fig:shearStress}, it is likely that the majority of the sedient
+particles were between 0.1mm and 1mm and that this corresponds to
+critical deposition values of approximately 1 m/s to 5 m/s and 0.2-0.3
+seabed shear stress.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/particle_sizes.outer.pdf}
+\caption{The percentage abundance of different sediment grain sizes
+observed across the Offsets Outer Harbour sediment sampling
+program.\label{fig:particle_sizes.outer}}
+\end{figure}
+
+The distribution of hydrodynamic seabed shear stress and velocity
+(Figure \ref{fig:hist_hydro_outer}) had an initial valley at 0.3. The
+distribution of wave derived seabed shear stress and velocity is
+illustrated in Figure \ref{fig:hist_waves_outer}, however, and suggests
+that the majority of the Outer Harbour was un-affected by high erosive
+wave shear forces.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_hydro_outer.pdf}
+\caption{Frequency distributions of hydrodynamic products in the Outer
+Harbour area.\label{fig:hist_hydro_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_waves_outer.pdf}
+\caption{Frequency distributions of wave modelling seabed shear stress
+products in the Outer Harbour area.\label{fig:hist_waves_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.9\textwidth,height=\textheight]{output/masks_outer.png}
+\caption{Individual Outer Harbour masks from various hydrodynamic
+(bedShear\_\emph{) and wave (beagle\_}) models categorised using a
+threshold values of 0.2 for all other than the 75th percentile products
+with use a threshold of 0.3 m/s. The blue areas indicate areas of
+predicted relatively low erosion and transport potential and thus good
+candidate areas for sample site allocation. The black dots illustrate
+the position of Munksgaard 2012 sediment sampling
+sites.\label{fig:masks_outer}}
+\end{figure}
+
+A single combined mask, incorporating the 50th percentile seabed shear
+stress and each of the wave derived seabed shear stresses is illustrated
+in Figure \ref{fig:mask_outer} for Outer Harbour.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/masks1_outer.png}
+\caption{Outer Harbour mask derived from the combination of 50th
+percentile seabed shear stress and each of the wave derived seabed shear
+stresses. The blue areas indicate areas of predicted relatively low
+erosion and transport potential and thus good candidate areas for sample
+site allocation. The black dots illustrate the position of Munksgaard
+2012 sediment sampling sites.\label{fig:mask_outer}}
+\end{figure}
+
+\hypertarget{exclusion-zone-masks}{%
+\subsection{Exclusion zone masks}\label{exclusion-zone-masks}}
+
+In addition to using hydrodynamic modelling masks to exclude areas that
+might be considered unsuitable for sediment monitoring, there are areas
+throughout Darwin Harbour that are not practical or appropriate for
+monitoring. These include the shipping channel and port exclusion zones
+as well as other exclusions zones associated with major infrastructure
+of military bases. Hence additional masks were developed from spatial
+layers provided by Lynda Radke.
+
+Figures \ref{fig:Map3a} and \ref{fig:Map3b} illustrate the sampling
+masks associated with East Arm and Outer Harbour respectively.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.7\textwidth,height=\textheight]{output/Map3a.pdf}
+\caption{East Arm mask derived from numerous exclusion zone shapefiles.
+The blue areas represent the spatial domain avaialble for sampling. The
+black dots illustrate the position of Munksgaard 2012 sediment sampling
+sites. Red dots represent the priority sites. Open black and red circles
+represent samples that are outside of the East Arm
+area.\label{fig:Map3a}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.7\textwidth,height=\textheight]{output/Map3b.pdf}
+\caption{Outer Harbour mask derived from numerous exclusion zone
+shapefiles. The blue areas represent the spatial domain avaialble for
+sampling. The black dots illustrate the position of Outer Harbour
+sediment sampling sites. Open black circles represent samples that are
+outside of the Outer Harbour area.\label{fig:Map3b}}
+\end{figure}
+
+\clearpage
+
+\hypertarget{spatial-model-fitting}{%
+\section{Spatial Model fitting}\label{spatial-model-fitting}}
+
+A target or set of targets is required against which the effectiveness
+and accuracy of candidate sampling designs can be tuned or gauged. This
+target should represent the full underlying conditions and in essence
+represent a saturated sampling design - a sampling design in which all
+possible locations/sites are sampled. Whilst this is logistically not
+possible, given an adequate set of baseline data, statistical spatial
+models can be generated to estimate the underlying patterns. The
+resulting predicted layers can be used to represent the targets.
+
+Spatial models are complex statistical models that attempt to recreate
+the full feature space from which a limited set of samples were
+collected. In so doing, they attempt to incorporate two-dimensional
+patterns and correlations to allow prediction to areas in between
+samples.
+
+In the simplest cases, simple surfaces can be derived by linear
+interpolation between all the sampling points. However, when samples are
+distributed unevenly, there are strong spatial dependencies and/or the
+bounding domain is not a simple rectangle, more complex methodologies
+are required.
+
+Ecological and environmental processes are often correlated through
+space. To account for these spatial dependencies within a spatial model,
+it is useful to incorporate a Gaussian Random Field (GRF) which
+specifies a spatially dependent covariance structure in which locations
+that are closer to one another in space will in general be more highly
+correlated to one another than locations that are further apart.
+
+Large or complex spatial models soon become intractable using a
+traditional frequentist modelling framework. By contrast, equivalent
+Bayesian models are typically very computationally expensive. Integrated
+Nested Laplace Approximation (INLA: Rue, Martino, and Chopin 2009) is a
+Bayesian approximation framework that offers the philosophical
+advantages of a full Bayesian approach, yet with the computational
+efficiency of frequentist approaches.
+
+We can consider a GRF to be stationary if the degree of correlation
+between two points is dependent only on the distance between the points,
+or non-stationary if we allow the correlation function to vary over the
+landscape. An extreme form of non-stationary model occurs when there are
+physical barriers that disrupt or block the flow of contagious
+processes. In such cases, just because two locations are in close
+proximity, does not necessarily mean that they will be highly
+correlated. Consider a simple example of the diffusion of a dye in water
+throughout a tank. The dye will spread out from the source and gradually
+disperse throughout the tank. Consequently, the correlation between the
+concentration of dye at any two locations during dispersion will be
+dependent on the distance between the two locations. If however, the
+tank had a partial barrier that restricted the flow of dye molecules,
+then two locations either side of the barrier might have very different
+dye concentrations despite being in close proximity. Barrier models are
+able to account for these obstructions.
+
+\[
+\begin{align}
+y_i &\sim{} \Gamma(\mu_i, \alpha)\\
+log(\mu_i) &= \beta_0 + u(s_i) + \varepsilon_i\\[1em]
+\beta_0 &\sim{} N(0,1000)\\
+u(s_i) &\sim{} GRF(r, \sigma_u)\\ 
+\varepsilon_i &\sim{} N(0, \sigma^2)\\[1em]
+\pi(\sigma_e) &\sim{} \lambda_e e^{-\lambda_e \sigma_e}\\
+\pi(\sigma_u) &\sim{} \lambda_0 e^{-\lambda_0 \sigma_u}\\
+\pi\left(\frac{1}{r}\right) & \sim{} \lambda_1 e^{-\lambda_1 \frac{1}{r}}
+\end{align}
+\]
+
+where \(y_i\) is the \(ith\) observation of the target chemical
+variable, \(\varepsilon_i\) is the independent and individually variable
+random effect used to model the very short range erratic dependencies
+and \(u(s_i)\) is the Gaussian Random Field and is used to model the
+long-range structural (autocorrelation) dependencies. A diffuse prior is
+applied to the intercept (\(\beta_0\)) and \(\varepsilon_i\) a vector of
+independent Gaussians. The Matern family spatial random effect
+(\(u(s_i)\)) and its covariance is defined by two parameters: the range
+(\(r\): represents the length scale of the spatial dependencies) and
+standard deviation (\(\simga_u\): representing the ratio of spatial to
+independent noise). The smaller the range, the lower the correlation
+between two proximal locations.
+
+In a boundary model, two different range parameters (\(r\)) are applied.
+One of the range parameters is applied to the boundary area (in this
+case land) and the other to the focal area (in this case Harbour). By
+setting the boundary range smaller (and close to zero) than the focal
+area range, the dependency structure across boundaries is disrupted and
+approach zero.
+
+Hyper-parameter priors for the random effects (\(\sigma_e\),
+\(\sigma_u\)) as well as \(r\) are defined in terms of a \(\lambda\)
+parameter which is determined by the scale of the response (on the log
+scale in this case). Both \(\lambda_e\) and \(\lambda_0\) were set to
+the median value of the target response (on a log scale). and the focal
+area \(r\) was set to half the width of the spatial domain after (Bakka
+et al. 2016).
+
+The random field was approximated via a Constrained Refined Delaunay
+Triangulation (CRDT) mesh. The mesh comprised of an inner region that
+surrounded all the Munksgaard sediment monitoring sites as well as an
+outer mesh provides a buffer to help ensure estimates close to the inner
+mesh boundary are robust. In doing so, the maximum permissible triangle
+edge length for the inner and outer mesh regions was set to 0.01 and
+0.04 (units of latlong projection) respectively. The smaller the values,
+the finer the mesh. This mesh was then projected onto the location of
+the observed sample location.
+
+The above models were fit for each of the sediment chemical recorded in
+the Munksgaard 2012 sediment sampling program. Figure
+\ref{fig:inla_model_east.arm_Zn} provides an example of the major
+elements of one of the chemical (Zinc) spatial models. Equivalent
+figures for the other chemicals are presented in Appendix A.
+
+Figure \ref{fig:inla_model_east.arm_Zn}a depicts the random field mesh
+with the Muksgaard 2012 sampling sites and Harbour boundary overlayed.
+Figure \ref{fig:inla_model_east.arm_Zn}b illustrates the boundary used
+for the barrier in the spatial model and Figure
+\ref{fig:inla_model_east.arm_Zn}c illustrates the final predicted
+spatial layer (with original sample data overlayed) for Zinc within the
+East Arm area. For comparison, both predicted (model output) and
+observed (Munksgaard samples) are presented on the same colour scale.
+Figure \ref{fig:inla_model_east.arm_Zn}c illustrates the final predicted
+spatial layer for Zinc within the East Arm area and where the colour
+scale is based purely on the range of predicted values.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Zn.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Zinc. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Zn}}
+\end{figure}
+
+Although the shrinkage in models is a little high (there is a tendency
+for the magnitude of change over space to be dampened), generally the
+models do a very good job of depicting the relative patterns of change
+in space. For this application, the absolute scale of the changes in
+patterns are not important (only the relative patterns), since in order
+to gauge the accuracy of any candidate sampling designs, it is necessary
+to standardize the patterns anyway. Hence it is more important that the
+model depict the general patterns in the observed data than the exact
+values of the observed data.
+
+\clearpage
+
+\hypertarget{sampling}{%
+\section{Sampling}\label{sampling}}
+
+Ideally, a good sampling design should comprise of a configuration of
+sites that collectively represent the broader area as efficiently as
+possible. In this context, efficiency is a compromise between complete
+representation (resulting from saturating the spatial domain with sites)
+and minimizing sampling effort.
+
+There are numerous approaches for generating candidate sampling
+configurations. Irrespective of the approach, there must be a metric by
+which the suitability of the configuration can be gauged. If we assume
+that full saturation must provide maximum representation, then all other
+configurations can be gauged relative to the full saturation. Hence a
+measure of how well a configuration is likely to represent the full
+spatial domain is the difference between some empirical property
+calculated from the candidate configuration and full saturation. For
+example, we could calculate the difference between the estimated mean
+Magnesium from a candidate configuration and the equivalent mean
+calculated from the full saturation. The magnitude of this difference is
+thus a measure of the inaccuracy and thus suitability of the candidate
+configuration.
+
+In the current application, there are numerous sediment chemicals that
+can be used to describe the underlying conditions within the spatial
+domain. Consequently, the metric needs to incorporate the differences
+across each of the chemicals. The following metric will be adopted.
+
+\[
+Mean Error = \frac{1}{n} \sum_{i=1:n}{\frac{abs(\bar{c_i} - \bar{s_i})}{\bar{r_i}}}
+\]
+
+\[
+Max Error = \max_{i=1:n}{\frac{abs(\bar{c_i} - \bar{s_i})}{\bar{r_i}}}
+\]
+
+\[
+Min Error = \min_{i=1:n}{\frac{abs(\bar{c_i} - \bar{s_i})}{\bar{r_i}}}
+\]
+
+where \(\bar{c}\) and \(\bar{s}\) are the estimated domain means of the
+\(ith\) chemical (out of \(n\)) from the candidate and full saturation
+configurations respectively and the normalizing constant (\(r_i\)) is
+the difference between maximum and minimum predicted values for the
+\(ith\) chemical. There are three metrics presented so capture three
+broad characteristics of the `accuracy' of the candidate sampling
+designs:
+
+\begin{itemize}
+\tightlist
+\item
+  MeanError - this is a measure of the average deviation between the
+  estimated zone mean (from the candidate model) and target mean from
+  across all chemical species.
+\item
+  MaxError - this is a measure of the maximum deviation between the
+  estimated zone mean (from the candidate model) and the target mean
+  from across all chemical species.\\
+  As a maximum, it can be used to compare the worst performing aspects
+  of each candidate and thus acts as a worst case scenario.
+\item
+  MinError - this is a measure of the minimum deviation between the
+  estimated zone mean (from the candidate model) and the target mean
+  from across all chemical species. As a minimum, it can be used to
+  compare the best performing aspects of each candidate and thus acts as
+  a best case scenario.
+\end{itemize}
+
+\hypertarget{random-sampling}{%
+\paragraph{Random sampling}\label{random-sampling}}
+
+The simplest approach to generating a spatial sampling design is to
+repeatedly simulate sampling from the spatial domain with a range of
+sample sizes and use the above metric to help determine the optimum
+sampling size and configuration. Given a sufficiently large sample size,
+random sampling should provide an unbiased and representative sampling
+design. However, it is highly likely that at low sample sizes this
+approach will not yield highly representative samples (high \(Error\)).
+Yet increasing the sample size should result (on average) in lower
+\(Error\) (= greater accuracy). To counter the natural stochasticity
+associated with simulation, we repeat each sample size five times.
+
+\hypertarget{sampling-on-a-regular-grid}{%
+\paragraph{Sampling on a regular
+grid}\label{sampling-on-a-regular-grid}}
+
+In the simple random sampling approach above, each simulated random draw
+was independent of all other draws. As a result, all configurations are
+possible - even those in which multiple samples are aggregated together
+in close proximity. In the absence of any prior knowledge about the
+underlying environmental conditions and heterogeneity, an even and
+regular spread of samples can ensure that the sampling design does offer
+general representativeness. Grids of increasing sample size offer
+progressively finer granularity and thus the ability to detect smaller
+scale perturbations in space.
+
+\hypertarget{conditioned-latin-hypercube-sampling}{%
+\paragraph{Conditioned Latin Hypercube
+Sampling}\label{conditioned-latin-hypercube-sampling}}
+
+In drawing both random samples and regular grid samples, the process is
+completely naive to the underlying environmental conditions.
+Consequently, they were only likely to be representative once a large
+number of samples were been collected. Conditional Latin Hypercube
+Sampling (cLHS) is a robust and efficient statistical sampling procedure
+that generates samples based on the variability within a
+multidimensional covariate feature space (Minasny and McBratney 2006a).
+Since the sampling process is supervised by the underlying conditions
+(or proxies thereof), for a given sample size, the resulting candidate
+sampling configurations are more likely to yield samples that are
+representative of the complex underlying conditions.
+
+In introducing the procedure, Minasny and McBratney (2006a) provided a
+real world example of a soil mapping project in which relatively small
+samples sizes generated by cLHS closely represented the original
+distribution of a set of environmental covariates. Furthermore, Minasny
+and McBratney (2006b) found cLHS superior (in terms of accuracy) to a
+range of alternative sampling procedures including random and stratified
+random sampling.
+
+\hypertarget{spatially-balanced-design}{%
+\paragraph{Spatially balanced design}\label{spatially-balanced-design}}
+
+Whilst regular grid sampling designs do space samples out throughout the
+spatial domain, they do have the potential to introduce biases due to
+any underlying systematic processes that might align with the design
+(albeit unintentionally) and do not necessarily provide good
+representation. On the other hand, random sampling designs offer some
+degree of protection from those biases. The shear nature of
+randomization means that it is possible that some sampling locations can
+be clustered in very close proximity. When this is the case, not only
+does it waste valuable sampling effort (as there is not need to provide
+multiple estimates of the same location), it introduces another bias.
+Any resulting estimates from the sampling design will be biased towards
+the clustered sample conditions as those conditioned are effectively
+weighted higher by virtue of the greater sampling effort.
+
+The ideal design is to be able to have a random configuration that still
+prevents the clustering of samples. In affect, a way to generate random
+locations whose probability of selection is proportional to the distance
+from all already selected sites. This is the inspiration behind
+\textbf{Spatially balanced designs}.
+
+There are numerous spatially balanced designed techniques. Some such as
+Generalized Random-Tessellation Stratified (GRTS), map the full two
+dimensional spatial domain into a single dimension (in a way that
+preserves the spatial ordering) before applying a systematic \(\pi\)ps
+sampling technique to ensure a balanced distribution of samples
+throughout the spatial domain. Grafström, Lundström, and Schelin (2012)
+introduced an alternative technique in which unequal inclusion
+probabilities are generated via a pivotal method.
+
+A further (and perhaps alternative) ideal is to be able to have a
+balanced design not only based on spatial proximity, but also on the
+basis of dissimilarity of underlying conditions. Spatial areas that are
+homogeneous with respect to some underlying sampling conditions require
+fewer sampling locations to characterise the underlying patterns than
+areas that are relatively heterogeneous. The spatially balanced design
+via pivotal method allows any number of dimensions to determine the
+inclusion probabilities.
+
+A key determinant in selecting which of the above techniques to adopt is
+based on an evaluation of the purpose of the sampling design. If for
+example, the purpose is to characterise the overall condition mean, then
+a 2D spatially balanced design is arguably most appropriate as it should
+represent the general underlying conditions. If on the other hand, the
+purpose is to be able to model the underlying patterns and understand
+where any changes in these patterns occur, then arguably a design that
+has been optimised around the underlying conditions (such as a
+n-dimensional spatially balanced design or conditioned latin hypercube
+sampling technique) is arguably more appropriate.
+
+\hypertarget{east-arm}{%
+\subsection{East Arm}\label{east-arm}}
+
+For a range of sample sizes (5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+120, 200, 1000), for East Arm, each of the above sampling approaches was
+repeated five times. For each run, the \(Error\) metric was calculated.
+The results are presented in Figures \ref{fig:samplingEffort} (mean
+error) and \ref{fig:samplingEffortMax} (max error). As expected, as the
+sample sizes increase, the error declines. The simple random sampling
+design performs worst. The regular grid sampling is better than the
+random sampling. Whilst clusters of samples might be appropriate for
+representing conditions when the conditions cluster correspondingly,
+totally random samples are highly unlikely to resemble the correct
+cluster configuration. The non uniform distribution of cLHS on the other
+hand was directly due to the clustering patterns in the underlying
+conditions and thus it was not surprising that this technique had the
+least error.
+
+Interestingly, the reduction in error after a sample size of 50 is
+relatively mild (notwithstanding that the figure is presented on a log-y
+scale). For each of sample sizes 50, 60, 70, 80 and 100, the best (based
+on lowest error) cLHS configuration is presented in Figure. Comma
+delimited text files are also available with the Latitude and Longitudes
+of these coordinates.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffort.pdf}
+\caption{Comparison of the mean Error conditional on sample size and
+sampling method for the East Arm\label{fig:samplingEffort}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMax.pdf}
+\caption{Comparison of the maximum Error conditional on sample size and
+sampling method for the East Arm\label{fig:samplingEffortMax}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMin.pdf}
+\caption{Comparison of the minimum Error conditional on sample size and
+sampling method for the East Arm\label{fig:samplingEffortMin}}
+\end{figure}
+
+On the basis of Figures \ref{fig:samplingEffort},
+\ref{fig:samplingEffortMax} and \ref{fig:samplingEffortMin} we could
+conclude that a sample size of 100 within East Arm is a sound choice,
+although it is likely that as few as 50 could still potentially yield
+similar overall patterns. The sample size of 100 also accommodates a
+buffer against sample loss. Nevertheless, this entire simulation process
+is contingent on a number of unverifiable assumptions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  that the Munksgaard 2012 sediment sampling data are representative of
+  the typical conditions and spatial patterns
+\item
+  all Munksgaard 2012 sediment chemicals are equally useful and
+  informative
+\item
+  the INLA models are able to fully represent the true underlying
+  conditions
+\item
+  the costs and logistics of sampling are equal irrespective of location
+\end{enumerate}
+
+The conditioned latin hypercube sampling technique consistently
+outperforms the other techniques. Interestingly, there was very little
+difference between the 2D and nD Spatially balanced designs. This
+suggests that either the sediment chemicals were relatively homogeneous
+over space or else patterns in one chemical species was countered by
+patterns in another chemical species.
+
+The conditioned latin hypercube sampling technique appeared to be able
+to tune its design on the underlying sediment chemical patterns better
+than the spatially balanced designs. Thus if the above assumptions are
+reasonable and the main intention of the sampling was to be able to
+describe the patterns in the sediment chemicals, then the sampling
+design derived from this technique seems most appropriate.
+
+If however, the purpose of the sampling design was be provide an
+unbiased representative sample of the general conditions across the
+spatial domain, then it could be argued that the 2D spatially balanced
+design was most appropriate - particularly if there was any doubt in the
+above assumptions.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_clhs.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for cLHS for the East
+Arm\label{fig:SamplingDesign_clhs}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_regular.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for Regular grid sampling for the East
+Arm\label{fig:SamplingDesign_regular}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for nD Spatially balanced sampling for the East
+Arm\label{fig:SamplingDesignspatiallybalanced2}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for 2D Spatially balanced sampling for the East
+Arm\label{fig:SamplingDesignspatiallybalanced}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2_final.pdf}
+\caption{Two dimensional spatially balanced sampling configuration for
+the East Arm (100
+samples)\label{fig:SamplingDesign_spatiallybalanced2_final}}
+\end{figure}
+
+\hypertarget{outer-harbour}{%
+\subsection{Outer Harbour}\label{outer-harbour}}
+
+For a range of sample sizes (5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+120, 200, 1000), for Outer Harbour, each of the above sampling
+approaches was repeated five times. For each run, the \(Error\) metric
+was calculated. The results are presented in Figures
+\ref{fig:samplingEffort_outer} (mean error) and
+\ref{fig:samplingEffortMax_outer} (max error). As expected, as the
+sample sizes increase, the error declined. The simple random sampling
+design performs worst. The regular grid sampling was better than the
+random sampling. Whilst clusters of samples might be appropriate for
+representing conditions when the conditions cluster correspondingly,
+totally random samples are highly unlikely to resemble the correct
+cluster configuration. The non uniform distribution of cLHS on the other
+hand was directly due to the clustering patterns in the underlying
+conditions and thus it is not surprising that this technique had the
+least error.
+
+Interestingly, the reduction in error after a sample size of 50 was
+relatively mild (notwithstanding that the figure is presented on a log-y
+scale). For each of sample sizes 50, 60, 70, 80 and 100, the best (based
+on lowest error) cLHS configuration is presented in Figure.. Comma
+delimeted text files are also available with the Latitude and Longitudes
+of these coordinates.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffort_outer.pdf}
+\caption{Comparison of the mean Error conditional on sample size and
+sampling method for the Outer Harbour\label{fig:samplingEffort_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMax_outer.pdf}
+\caption{Comparison of the maximum Error conditional on sample size and
+sampling method for the Outer
+Harbour\label{fig:samplingEffortMax_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMin_outer.pdf}
+\caption{Comparison of the minimum Error conditional on sample size and
+sampling method for the Outer
+Harbour\label{fig:samplingEffortMin_outer}}
+\end{figure}
+
+On the basis of Figures \ref{fig:samplingEffort_outer},
+\ref{fig:samplingEffortMax_outer} and \ref{fig:samplingEffortMin_outer}
+we could conclude that a sample size of 100 within Outer Harbour was a
+sound choice, although it is likely that as few as 50 could still
+potentially yield similar overall patterns. The sample size of 100 also
+accommodates a buffer against sample loss. Nevertheless, this entire
+simulation process is contingent on a number of unverifiable
+assumptions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  that the Offset Outer Harbour sediment sampling data are
+  representative of the typical conditions and spatial patterns
+\item
+  all Offset Outer Harbour sediment chemicals are equally useful and
+  informative
+\item
+  the INLA models are able to fully represent the true underlying
+  conditions
+\item
+  the costs and logistics of sampling are equal irrespective of location
+\end{enumerate}
+
+Contrary to the situation for the East Arm area, the conditioned latin
+hypercube sampling technique only outperformed the other techniques at
+very low sample sizes. After a sample size of approximately 30, the 2D
+spatially balanced design had better Minimum and Maximum Error. Also of
+interest is the finding that the multidimensional spatially balanced
+design was consistently worse than both a regular grid and 2D spatially
+balanced design and on par with a totally random design. This might
+suggest that there were fewer distinct patterns in the underlying
+sediment chemical data as observed in the Offset Outer Harbour sampling
+program.
+
+Again, if however the purpose of the sampling design was be provide an
+unbiased representative sample of the general conditions across the
+spatial domain, then it could be argued that the 2D spatially balanced
+design was most appropriate - particularly if there was any doubt in the
+above assumptions.
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_clhs_outer.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for cLHS for the Outer
+Harbour\label{fig:SamplingDesign_clhs_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_regular_outer.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for Regular grid sampling for the Outer
+Harbour\label{fig:SamplingDesign_regular_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2_outer.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for nD Spatially balanced sampling for the Outer
+Harbour\label{fig:SamplingDesign_spatiallybalanced2_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced_outer.pdf}
+\caption{Sampling configurations associated with the lowest mean Error
+for each sample size for 2D Spatially balanced sampling for the Outer
+Harbour\label{fig:SamplingDesign_spatiallybalanced_outer}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2_final_outer.pdf}
+\caption{Two dimensional spatially balanced sampling configuration for
+the Outer Harbour (100
+samples)\label{fig:SamplingDesign_spatiallybalanced2_final_outer}}
+\end{figure}
+
+\hypertarget{conclusions}{%
+\section{Conclusions}\label{conclusions}}
+
+Overall, 2D spatially balanced sampling designs for both Outer Harbour
+and East Arm would seem most appropriate. These designs are immune to
+any uncertainty in previous data and spatial modelling and should yield
+well balanced spatial configurations. A total of 100 samples collected
+from both East Arm and Outer Harbour was likely to yield representative
+samples from which to construct a variety of spatio-temporal models into
+the future.
+
+\hypertarget{appendix-a}{%
+\section{Appendix A}\label{appendix-a}}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Al.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Aluminium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Al}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_P.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Phosphorus. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_P}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_S.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Sulfur. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_S}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ca.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Calcium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Ca}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_V.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Vanadium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_V}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Cr.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Chromium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Cr}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Fe.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Iron. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Fe}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Mn.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Manganese. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Mn}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Co.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Cobult. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Co}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ni.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Nickel. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Ni}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Cu.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Copper. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Cu}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Zn.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Zinc. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Zn}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ga.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Gallium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Ga}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_As.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Arsenic. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_As}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Se.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Selenium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Se}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Mo.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Molybdenum. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Mo}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ca.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Cadmium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_east.arm_Ca}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Pb.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Lead. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_east.arm_Pb}}
+\end{figure}
+
+\hypertarget{appendix-b}{%
+\section{Appendix B}\label{appendix-b}}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Al.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Aluminium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_Al}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_As.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Arsenic. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_As}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Ce.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Cerium. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_outer_Ce}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Cr.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Cromium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_Cr}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Cu.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Copper. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_outer_Cu}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Fe.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Iron. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_outer_Fe}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Mn.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Manganese. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_Mn}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Ni.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Nickel. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_outer_Ni}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Pb.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Lead. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_outer_Pb}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Sb.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Antonium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_Sb}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_V.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Vanadium. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_V}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Zn.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Zn. The diagram illustrates a) the mesh, b) the barrier
+mask, c) the resulting predicted 2D surface (and observed training data
+as points) and d) the resulting predicted 2D surface scaled to the range
+of predictions.\label{fig:inla_model_outer_Zn}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_TOC.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Total organic Carbon. The diagram illustrates a) the mesh,
+b) the barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_TOC}}
+\end{figure}
+
+\begin{figure}
+\centering\scriptsize
+\includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_TN.png}
+\caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
+modelling of Total Nitrogen. The diagram illustrates a) the mesh, b) the
+barrier mask, c) the resulting predicted 2D surface (and observed
+training data as points) and d) the resulting predicted 2D surface
+scaled to the range of predictions.\label{fig:inla_model_outer_TN}}
+\end{figure}
+
+This document was produced from markdown using knitr on R version 3.6.1
+(2019-07-05) on a x86\_64-pc-linux-gnu system.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\OperatorTok{>}\StringTok{ }\KeywordTok{sessionInfo}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+R version 3.6.1 (2019-07-05)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Arch Linux
+
+Matrix products: default
+BLAS:   /usr/lib/libopenblasp-r0.3.7.so
+LAPACK: /usr/lib/liblapack.so.3.8.0
+
+locale:
+ [1] LC_CTYPE=en_AU.utf8        LC_NUMERIC=C               LC_TIME=en_AU.UTF-8       
+ [4] LC_COLLATE=en_AU.utf8      LC_MONETARY=en_AU.UTF-8    LC_MESSAGES=en_AU.utf8    
+ [7] LC_PAPER=en_AU.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_AU.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] knitr_1.25
+
+loaded via a namespace (and not attached):
+[1] compiler_3.6.1 magrittr_1.5   tools_3.6.1    stringi_1.4.3  stringr_1.4.0  xfun_0.10     
+[7] evaluate_0.14 
+\end{verbatim}
+
+\hypertarget{references}{%
+\section{References}\label{references}}
+
+\% Darwin Harbour Sediment Sampling Design \% Murray Logan \% 22-03-2019
+
+\hypertarget{synopsis-1}{%
+\section{Synopsis}\label{synopsis-1}}
+
 To inform the spatial component of the Darwin Harbour Sediment
 Monitoring sampling design. In particular, to determine the `best'
 location for 100 Sites in the East Arm and Outer Harbour sections of
@@ -487,11 +1936,11 @@ configurations.
 All code for this project is available on github
 \url{https://github.com/AIMS/darwin-harbour-sampling.git}
 
-\hypertarget{data-processing}{%
-\section{Data processing}\label{data-processing}}
+\hypertarget{data-processing-1}{%
+\section{Data processing}\label{data-processing-1}}
 
-\hypertarget{gis-data}{%
-\subsection{GIS data}\label{gis-data}}
+\hypertarget{gis-data-1}{%
+\subsection{GIS data}\label{gis-data-1}}
 
 A shapefile of Darwin Harbour (see Figure \ref{fig:Map1}) will be
 utilized in order to define the initial sampling domain(s). This project
@@ -502,15 +1951,15 @@ Darwin. The Outer Harbour will be defined as Outer Harbour and Shoal
 Bay.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.7\textwidth,height=\textheight]{output/Map1.pdf}
 \caption{Map of Darwin Harbour highlighting the Outer Harbour and East
 Arm sections.\label{fig:Map1}}
 \end{figure}
 
-\hypertarget{munksgaard-2012-chemical-sediment-data}{%
+\hypertarget{munksgaard-2012-chemical-sediment-data-1}{%
 \subsection{Munksgaard 2012 chemical sediment
-data}\label{munksgaard-2012-chemical-sediment-data}}
+data}\label{munksgaard-2012-chemical-sediment-data-1}}
 
 Munksgaard 2012 chemical sediment data were provided by Lynda Radke in
 the form of an Excel workbook. These data were consolidated together
@@ -532,9 +1981,9 @@ Outer Harbour), is not appropriate. Consequently, and unfortunately, the
 Munksgaard sediment data is of little utility for designing a sampling
 program for the Outer Harbour.
 
-\hypertarget{offset-outer-harbour-sediment-monitoring-data}{%
+\hypertarget{offset-outer-harbour-sediment-monitoring-data-1}{%
 \subsection{Offset Outer Harbour sediment monitoring
-data}\label{offset-outer-harbour-sediment-monitoring-data}}
+data}\label{offset-outer-harbour-sediment-monitoring-data-1}}
 
 Offset Outer Harbour sediment monitoring data were provided by Lynda
 Radke in the form of an Excel workbook. These data were consolidated
@@ -543,8 +1992,8 @@ spatial configuration of the Offset Outer Harbour sediment sampling
 sites are illustrated in Figure \ref{fig:Map2} (square ponts). These
 data will be used to inform the selection of Outer Harbour sites.
 
-\hypertarget{priority-sampling-sites}{%
-\subsection{Priority sampling sites}\label{priority-sampling-sites}}
+\hypertarget{priority-sampling-sites-1}{%
+\subsection{Priority sampling sites}\label{priority-sampling-sites-1}}
 
 In addition to the long-term monitoring sites, a number of more
 regularly sampled priority sites have been provided by Lynda Radke in
@@ -555,7 +2004,7 @@ priority sites fall in the defined Outer Harbour and East Arms regions
 and thus they will not be considered further.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/Map2.pdf}
 \caption{Map of Darwin Harbour indicating the spatial configuration of
 Munksgaard 2012 sediment monitoring sites (dots). Solid dots signify
@@ -567,9 +2016,9 @@ priority sites.\label{fig:Map2}}
 
 \newpage
 
-\hypertarget{hydrodynamic-and-wave-modelling}{%
+\hypertarget{hydrodynamic-and-wave-modelling-1}{%
 \subsection{Hydrodynamic and wave
-modelling}\label{hydrodynamic-and-wave-modelling}}
+modelling}\label{hydrodynamic-and-wave-modelling-1}}
 
 When designing a sediment monitoring program, it is important to
 consider the erosive, transportation and deposition forces operating on
@@ -613,21 +2062,21 @@ Harbour and East Arm focal areas are depicted in Figures
 \ref{fig:hydro_outer} -- \ref{fig:waves_east}.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/hydro_outer.png}
 \caption{Outer Harbour extract of four hydrodynamic modeling tidal
 products.\label{fig:hydro_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/hydro_east.png}
 \caption{East Arm extract of four hydrodynamic modeling tidal
 products.\label{fig:hydro_east}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/waves_ubot_outer.png}
 \caption{Outer Harbour extract of five hydrodynamic modeling wave
 products. The different products represent different wind angles (0, 90,
@@ -635,15 +2084,15 @@ products. The different products represent different wind angles (0, 90,
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/waves_ubot_east.png}
 \caption{East Arm extract of five hydrodynamic modeling wave products.
 The different products represent different wind angles (0, 90, 140, 270
 and 315 degrees).\label{fig:waves_east}}
 \end{figure}
 
-\hypertarget{masks}{%
-\subsubsection{Masks}\label{masks}}
+\hypertarget{masks-1}{%
+\subsubsection{Masks}\label{masks-1}}
 
 The seabed shear stress products provide spatial modelling of the
 expected forces acting on the sea bed during a typical spring-neap tidal
@@ -659,7 +2108,7 @@ deposition is likely. Figures \ref{fig:Hjulstroms} and
 sizes for water velocity and sea bed stress respectively.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{data/Provided/hjulstrom.jpg}
 \caption{Hjulstrom Curve linking sediment size and the velocity needed
 to erode, transport or deposit (from
@@ -667,15 +2116,15 @@ to erode, transport or deposit (from
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.6\textwidth,height=\textheight]{data/Provided/Critical-bed-shear-stress-C-for-erosion-of-continental-margin-particles-showing-the_W640.jpg}
 \caption{Critical bed shear stress for erosion and particle settling
 velocity of a range of particle sizes from Thomsen
 (2002)\label{fig:shearStress}}
 \end{figure}
 
-\hypertarget{east-arm-sampling-domain}{%
-\paragraph{East Arm sampling domain}\label{east-arm-sampling-domain}}
+\hypertarget{east-arm-sampling-domain-1}{%
+\paragraph{East Arm sampling domain}\label{east-arm-sampling-domain-1}}
 
 Figure \ref{fig:particle_sizes} illustrates the distribution of
 percentage abundance of a range of particle sizes class categories from
@@ -705,7 +2154,7 @@ seabed shear stress appear to drop off the peak at around 0.2 m/s, hence
 this appears to be a sensible threshold value.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/particle_sizes.pdf}
 \caption{The percentage abundance of different sediment grain sizes
 observed across the Munksgaard sediment sampling
@@ -713,14 +2162,14 @@ program.\label{fig:particle_sizes}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_hydro_east.pdf}
 \caption{Frequency distributions of hydrodynamic products in the East
 Arm area.\label{fig:hist_hydro_east}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_waves_east.pdf}
 \caption{Frequency distributions of wave modelling seabed shear stress
 products in the East Arm area.\label{fig:hist_waves_east}}
@@ -748,7 +2197,7 @@ broadly overlap, there is substantially less suitable area in the region
 adjacent to the City and substantially more in the East Arm reaches.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.9\textwidth,height=\textheight]{output/masks.png}
 \caption{Individual East Arm masks from various hydrodynamic
 (bedShear\_\emph{) and wave (beagle\_}) models categorised using a
@@ -761,7 +2210,7 @@ sites.\label{fig:masks}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/masks1.png}
 \caption{East Arm mask derived from the combination of 50th percentile
 seabed shear stress and each of the wave derived seabed shear stresses.
@@ -771,9 +2220,9 @@ allocation. The black dots illustrate the position of Munksgaard 2012
 sediment sampling sites.\label{fig:mask_east}}
 \end{figure}
 
-\hypertarget{outer-harbour-sampling-domain}{%
+\hypertarget{outer-harbour-sampling-domain-1}{%
 \subsection{Outer Harbour sampling
-domain}\label{outer-harbour-sampling-domain}}
+domain}\label{outer-harbour-sampling-domain-1}}
 
 Figure \ref{fig:particle_sizes.outer} illustrates the distribution of
 percentage abundance of a range of particle sizes class categories from
@@ -785,7 +2234,7 @@ critical deposition values of approximately 1 m/s to 5 m/s and 0.2-0.3
 seabed shear stress.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/particle_sizes.outer.pdf}
 \caption{The percentage abundance of different sediment grain sizes
 observed across the Offsets Outer Harbour sediment sampling
@@ -800,21 +2249,21 @@ that the majority of the Outer Harbour is un-affected by high erosive
 wave shear forces.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_hydro_outer.pdf}
 \caption{Frequency distributions of hydrodynamic products in the Outer
 Harbour area.\label{fig:hist_hydro_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/hist_waves_outer.pdf}
 \caption{Frequency distributions of wave modelling seabed shear stress
 products in the Outer Harbour area.\label{fig:hist_waves_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.9\textwidth,height=\textheight]{output/masks_outer.png}
 \caption{Individual Outer Harbour masks from various hydrodynamic
 (bedShear\_\emph{) and wave (beagle\_}) models categorised using a
@@ -831,7 +2280,7 @@ stress and each of the wave derived seabed shear stresses is illustrated
 in Figure \ref{fig:mask_outer} for Outer Harbour.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/masks1_outer.png}
 \caption{Outer Harbour mask derived from the combination of 50th
 percentile seabed shear stress and each of the wave derived seabed shear
@@ -841,8 +2290,8 @@ site allocation. The black dots illustrate the position of Munksgaard
 2012 sediment sampling sites.\label{fig:mask_outer}}
 \end{figure}
 
-\hypertarget{exclusion-zone-masks}{%
-\subsection{Exclusion zone masks}\label{exclusion-zone-masks}}
+\hypertarget{exclusion-zone-masks-1}{%
+\subsection{Exclusion zone masks}\label{exclusion-zone-masks-1}}
 
 In addition to using hydrodynamic modelling masks to exclude areas that
 might be considered unsuitable for sediment monitoring, there are areas
@@ -856,7 +2305,7 @@ Figures \ref{fig:Map3a} and \ref{fig:Map3b} illustrate the sampling
 masks associated with East Arm and Outer Harbour respectively.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.7\textwidth,height=\textheight]{output/Map3a.pdf}
 \caption{East Arm mask derived from numerous exclusion zone shapefiles.
 The blue areas represent the spatial domain avaialble for sampling. The
@@ -867,7 +2316,7 @@ area.\label{fig:Map3a}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.7\textwidth,height=\textheight]{output/Map3b.pdf}
 \caption{Outer Harbour mask derived from numerous exclusion zone
 shapefiles. The blue areas represent the spatial domain avaialble for
@@ -878,8 +2327,8 @@ outside of the Outer Harbour area.\label{fig:Map3b}}
 
 \clearpage
 
-\hypertarget{spatial-model-fitting}{%
-\section{Spatial Model fitting}\label{spatial-model-fitting}}
+\hypertarget{spatial-model-fitting-1}{%
+\section{Spatial Model fitting}\label{spatial-model-fitting-1}}
 
 A target or set of targets is required against which the effectiveness
 and accuracy of candidate sampling designs can be tuned or gauged. This
@@ -1004,7 +2453,7 @@ spatial layer for Magnesium within the East Arm area and where the color
 scale is based purely on the range of predicted values.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Mg.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of magnesium. The diagram illustrates a) the mesh, b) the
@@ -1025,8 +2474,8 @@ values of the observed data.
 
 \clearpage
 
-\hypertarget{sampling}{%
-\section{Sampling}\label{sampling}}
+\hypertarget{sampling-1}{%
+\section{Sampling}\label{sampling-1}}
 
 Ideally, a good sampling design should comprise of a configuration of
 sites that collectively represent the broader area as efficiently as
@@ -1093,8 +2542,8 @@ designs:
   a best case scenario.
 \end{itemize}
 
-\hypertarget{random-sampling}{%
-\paragraph{Random sampling}\label{random-sampling}}
+\hypertarget{random-sampling-1}{%
+\paragraph{Random sampling}\label{random-sampling-1}}
 
 The simplest approach to generating a spatial sampling design is to
 repeatedly simulate sampling from the spatial domain with a range of
@@ -1107,9 +2556,9 @@ yet, increasing the sample size should result (on average) in lower
 \(Error\) (= greater accuracy). To counter the natural stochasticity
 associated with simulation, we will repeat each sample size five times.
 
-\hypertarget{sampling-on-a-regular-grid}{%
+\hypertarget{sampling-on-a-regular-grid-1}{%
 \paragraph{Sampling on a regular
-grid}\label{sampling-on-a-regular-grid}}
+grid}\label{sampling-on-a-regular-grid-1}}
 
 In the simple random sampling approach above, each simulated random draw
 is independent of all other draws. As a result, all configurations are
@@ -1121,9 +2570,9 @@ general representativeness. Grids of increasing sample size offer
 progressively finer granularity and thus the ability to detect smaller
 scale perturbations in space.
 
-\hypertarget{conditioned-latin-hypercube-sampling}{%
+\hypertarget{conditioned-latin-hypercube-sampling-1}{%
 \paragraph{Conditioned Latin Hypercube
-Sampling}\label{conditioned-latin-hypercube-sampling}}
+Sampling}\label{conditioned-latin-hypercube-sampling-1}}
 
 In drawing both random samples and regular grid samples, the process is
 completely naive to the underlying environmental conditions.
@@ -1145,8 +2594,9 @@ and McBratney (2006b) found cLHS superior (in terms of accuracy) to a
 range of alternative sampling procedures including random and stratified
 random sampling.
 
-\hypertarget{spatially-balanced-design}{%
-\paragraph{Spatially balanced design}\label{spatially-balanced-design}}
+\hypertarget{spatially-balanced-design-1}{%
+\paragraph{Spatially balanced
+design}\label{spatially-balanced-design-1}}
 
 Whilst regular grid sampling designs do space samples out throughout the
 spatial domain, they do have the potential to introduce biases due to
@@ -1198,8 +2648,8 @@ around the underlying conditions, such as a n-dimensional spatially
 balanced design or conditioned latin hypercube sampling technique is
 arguably more appropriate.
 
-\hypertarget{east-arm}{%
-\subsection{East Arm}\label{east-arm}}
+\hypertarget{east-arm-1}{%
+\subsection{East Arm}\label{east-arm-1}}
 
 For a range of sample sizes (5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
 120, 200, 1000), for East Arm, each of the above sampling approaches was
@@ -1224,21 +2674,21 @@ delimeted text files are also available with the Latitude and Longitudes
 of these coordinates.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffort.pdf}
 \caption{Comparison of the mean Error conditional on sample size and
 sampling method for the East Arm\label{fig:samplingEffort}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMax.pdf}
 \caption{Comparison of the maximum Error conditional on sample size and
 sampling method for the East Arm\label{fig:samplingEffortMax}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMin.pdf}
 \caption{Comparison of the minimum Error conditional on sample size and
 sampling method for the East Arm\label{fig:samplingEffortMin}}
@@ -1289,7 +2739,7 @@ most appropriate - particularly if there is any doubt in the above
 assumptions.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_clhs.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for cLHS for the East
@@ -1297,7 +2747,7 @@ Arm\label{fig:SamplingDesign_clhs}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_regular.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for Regular grid sampling for the East
@@ -1305,7 +2755,7 @@ Arm\label{fig:SamplingDesign_regular}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for nD Spatially balanced sampling for the East
@@ -1313,7 +2763,7 @@ Arm\label{fig:SamplingDesignspatiallybalanced2}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for 2D Spatially balanced sampling for the East
@@ -1321,15 +2771,15 @@ Arm\label{fig:SamplingDesignspatiallybalanced}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2_final.pdf}
 \caption{Two dimensional spatially balanced sampling configuration for
 the East Arm (100
 samples)\label{fig:SamplingDesign_spatiallybalanced2_final}}
 \end{figure}
 
-\hypertarget{outer-harbour}{%
-\subsection{Outer Harbour}\label{outer-harbour}}
+\hypertarget{outer-harbour-1}{%
+\subsection{Outer Harbour}\label{outer-harbour-1}}
 
 For a range of sample sizes (5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
 120, 200, 1000), for Outer Harbour, each of the above sampling
@@ -1355,14 +2805,14 @@ delimeted text files are also available with the Latitude and Longitudes
 of these coordinates.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffort_outer.pdf}
 \caption{Comparison of the mean Error conditional on sample size and
 sampling method for the Outer Harbour\label{fig:samplingEffort_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMax_outer.pdf}
 \caption{Comparison of the maximum Error conditional on sample size and
 sampling method for the Outer
@@ -1370,7 +2820,7 @@ Harbour\label{fig:samplingEffortMax_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/SamplingEffortMin_outer.pdf}
 \caption{Comparison of the minimum Error conditional on sample size and
 sampling method for the Outer
@@ -1420,7 +2870,7 @@ design is most appropriate - particularly if there is any doubt in the
 above assumptions.
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_clhs_outer.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for cLHS for the Outer
@@ -1428,7 +2878,7 @@ Harbour\label{fig:SamplingDesign_clhs_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_regular_outer.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for Regular grid sampling for the Outer
@@ -1436,7 +2886,7 @@ Harbour\label{fig:SamplingDesign_regular_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2_outer.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for nD Spatially balanced sampling for the Outer
@@ -1444,7 +2894,7 @@ Harbour\label{fig:SamplingDesign_spatiallybalanced2_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced_outer.pdf}
 \caption{Sampling configurations associated with the lowest mean Error
 for each sample size for 2D Spatially balanced sampling for the Outer
@@ -1452,15 +2902,15 @@ Harbour\label{fig:SamplingDesign_spatiallybalanced_outer}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=1\textwidth,height=\textheight]{output/SamplingDesign_spatiallybalanced2_final_outer.pdf}
 \caption{Two dimensional spatially balanced sampling configuration for
 the Outer Harbour (100
 samples)\label{fig:SamplingDesign_spatiallybalanced2_final_outer}}
 \end{figure}
 
-\hypertarget{conclusions}{%
-\section{Conclusions}\label{conclusions}}
+\hypertarget{conclusions-1}{%
+\section{Conclusions}\label{conclusions-1}}
 
 Overall, 2D spatially balanced sampling designs for both Outer Harbour
 and East Arm would seem most appropriate. These designs are immune to
@@ -1470,11 +2920,11 @@ from both East Arm and Outer Harbour is likely to yield representative
 samples from which to construct a variety of spatio-temporal models into
 the future.
 
-\hypertarget{appendix-a}{%
-\section{Appendix A}\label{appendix-a}}
+\hypertarget{appendix-a-1}{%
+\section{Appendix A}\label{appendix-a-1}}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Al.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Aluminium. The diagram illustrates a) the mesh, b) the
@@ -1484,7 +2934,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Al}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_P.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Phosphorus. The diagram illustrates a) the mesh, b) the
@@ -1494,7 +2944,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_P}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_S.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Sulfur. The diagram illustrates a) the mesh, b) the barrier
@@ -1504,7 +2954,7 @@ of predictions.\label{fig:inla_model_east.arm_S}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ca.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Calcium. The diagram illustrates a) the mesh, b) the
@@ -1514,7 +2964,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Ca}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_V.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Vanadium. The diagram illustrates a) the mesh, b) the
@@ -1524,7 +2974,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_V}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Cr.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Chromium. The diagram illustrates a) the mesh, b) the
@@ -1534,7 +2984,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Cr}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Fe.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Iron. The diagram illustrates a) the mesh, b) the barrier
@@ -1544,7 +2994,7 @@ of predictions.\label{fig:inla_model_east.arm_Fe}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Mn.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Manganese. The diagram illustrates a) the mesh, b) the
@@ -1554,7 +3004,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Mn}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Co.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Cobult. The diagram illustrates a) the mesh, b) the barrier
@@ -1564,7 +3014,7 @@ of predictions.\label{fig:inla_model_east.arm_Co}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ni.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Nickel. The diagram illustrates a) the mesh, b) the barrier
@@ -1574,7 +3024,7 @@ of predictions.\label{fig:inla_model_east.arm_Ni}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Cu.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Copper. The diagram illustrates a) the mesh, b) the barrier
@@ -1584,7 +3034,7 @@ of predictions.\label{fig:inla_model_east.arm_Cu}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Zn.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Zinc. The diagram illustrates a) the mesh, b) the barrier
@@ -1594,7 +3044,7 @@ of predictions.\label{fig:inla_model_east.arm_Zn}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ga.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Gallium. The diagram illustrates a) the mesh, b) the
@@ -1604,7 +3054,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Ga}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_As.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Arsenic. The diagram illustrates a) the mesh, b) the
@@ -1614,7 +3064,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_As}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Se.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Selenium. The diagram illustrates a) the mesh, b) the
@@ -1624,7 +3074,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Se}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Mo.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Molybdenum. The diagram illustrates a) the mesh, b) the
@@ -1634,7 +3084,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Mo}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Ca.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Cadmium. The diagram illustrates a) the mesh, b) the
@@ -1644,7 +3094,7 @@ scaled to the range of predictions.\label{fig:inla_model_east.arm_Ca}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_east.arm1_Pb.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Lead. The diagram illustrates a) the mesh, b) the barrier
@@ -1653,11 +3103,11 @@ as points) and d) the resulting predicted 2D surface scaled to the range
 of predictions.\label{fig:inla_model_east.arm_Pb}}
 \end{figure}
 
-\hypertarget{appendix-b}{%
-\section{Appendix B}\label{appendix-b}}
+\hypertarget{appendix-b-1}{%
+\section{Appendix B}\label{appendix-b-1}}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Al.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Aluminium. The diagram illustrates a) the mesh, b) the
@@ -1667,7 +3117,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_Al}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_As.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Arsenic. The diagram illustrates a) the mesh, b) the
@@ -1677,7 +3127,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_As}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Ce.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Cerium. The diagram illustrates a) the mesh, b) the barrier
@@ -1687,7 +3137,7 @@ of predictions.\label{fig:inla_model_outer_Ce}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Cr.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Cromium. The diagram illustrates a) the mesh, b) the
@@ -1697,7 +3147,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_Cr}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Cu.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Copper. The diagram illustrates a) the mesh, b) the barrier
@@ -1707,7 +3157,7 @@ of predictions.\label{fig:inla_model_outer_Cu}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Fe.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Iron. The diagram illustrates a) the mesh, b) the barrier
@@ -1717,7 +3167,7 @@ of predictions.\label{fig:inla_model_outer_Fe}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Mn.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Manganese. The diagram illustrates a) the mesh, b) the
@@ -1727,7 +3177,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_Mn}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Ni.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Nickel. The diagram illustrates a) the mesh, b) the barrier
@@ -1737,7 +3187,7 @@ of predictions.\label{fig:inla_model_outer_Ni}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Pb.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Lead. The diagram illustrates a) the mesh, b) the barrier
@@ -1747,7 +3197,7 @@ of predictions.\label{fig:inla_model_outer_Pb}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Sb.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Antonium. The diagram illustrates a) the mesh, b) the
@@ -1757,7 +3207,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_Sb}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_V.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Vanadium. The diagram illustrates a) the mesh, b) the
@@ -1767,7 +3217,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_V}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_Zn.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Zn. The diagram illustrates a) the mesh, b) the barrier
@@ -1777,7 +3227,7 @@ of predictions.\label{fig:inla_model_outer_Zn}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_TOC.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Total organic Carbon. The diagram illustrates a) the mesh,
@@ -1787,7 +3237,7 @@ scaled to the range of predictions.\label{fig:inla_model_outer_TOC}}
 \end{figure}
 
 \begin{figure}
-\centering\scriptsize\scriptsize
+\centering\scriptsize
 \includegraphics[width=0.8\textwidth,height=\textheight]{output/inla_model_outer1_TN.png}
 \caption{Integrated Nested Laplace Approximation (INLA) barrier spatial
 modelling of Total Nitrogen. The diagram illustrates a) the mesh, b) the
@@ -1796,8 +3246,8 @@ training data as points) and d) the resulting predicted 2D surface
 scaled to the range of predictions.\label{fig:inla_model_outer_TN}}
 \end{figure}
 
-This document was produced from markdown using knitr on R version 3.6.0
-(2019-04-26) on a x86\_64-pc-linux-gnu system.
+This document was produced from markdown using knitr on R version 3.6.1
+(2019-07-05) on a x86\_64-pc-linux-gnu system.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1806,12 +3256,12 @@ This document was produced from markdown using knitr on R version 3.6.0
 \end{Shaded}
 
 \begin{verbatim}
-R version 3.6.0 (2019-04-26)
+R version 3.6.1 (2019-07-05)
 Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: ArcoLinux
+Running under: Arch Linux
 
 Matrix products: default
-BLAS:   /usr/lib/libopenblasp-r0.3.5.so
+BLAS:   /usr/lib/libopenblasp-r0.3.7.so
 LAPACK: /usr/lib/liblapack.so.3.8.0
 
 locale:
@@ -1824,15 +3274,15 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] knitr_1.22
+[1] knitr_1.25
 
 loaded via a namespace (and not attached):
-[1] compiler_3.6.0 magrittr_1.5   tools_3.6.0    stringi_1.4.3  stringr_1.4.0  xfun_0.6      
-[7] evaluate_0.13 
+[1] compiler_3.6.1 magrittr_1.5   tools_3.6.1    stringi_1.4.3  stringr_1.4.0  xfun_0.10     
+[7] evaluate_0.14 
 \end{verbatim}
 
-\hypertarget{references}{%
-\section*{References}\label{references}}
+\hypertarget{references-1}{%
+\section*{References}\label{references-1}}
 \addcontentsline{toc}{section}{References}
 
 \hypertarget{refs}{}
