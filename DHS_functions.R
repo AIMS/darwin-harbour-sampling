@@ -94,7 +94,8 @@ fitINLA.barriermodel = function(bndry, data, var, mesh.type='points',prior.range
     if (mesh.type=='boundary') {
         mesh = inla.mesh.2d(boundary = bndry,
                             loc=cbind(data$Longitude, data$Latitude),
-                            max.edge = c(1,2)*max.edge,
+                            #max.edge = c(1,2)*max.edge,
+                            max.edge = c(0.5,1)*max.edge,
                             cutoff = 0.005,
                             offset = c(max.edge, bound.outer))
     } else if (mesh.type=='points') {

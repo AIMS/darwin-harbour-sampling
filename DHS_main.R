@@ -9,7 +9,7 @@ source('DHS_config.R')
 ## - hydrodynamic model data (current velocity and tidal current)
 ## - waves model data 
 source('DHS_readData.R')
-
+source('DHS_readData_MA.R')
 
 
 ## Process
@@ -22,19 +22,25 @@ source('DHS_readData.R')
 
 ## 1. Isolate the sediment data for East Arm
 source('DHS_moreSpatialObjects.R')
+source('DHS_moreSpatialObjects_MA.R')
 
 ## 2. This needs a recent version - I am currently doing this on a virtualbox
 source('DHS_fitINLAmodels.R')
+source('DHS_fitINLAmodels_MA.R')
+
 source('DHS_summariseINLAmodels.R')
+source('DHS_summariseINLAmodels_MA.R')
 
 ## 3. Isolate hydro and wave data for East Arm
 ## This was performed in DHS_moreSpatialObjects.R
 
 ## 4. Threshold hydro and waves data
 source('DHS_thresholdLayers.R')
+source('DHS_thresholdLayers_MA.R')
 
 ## 5. Run clhs
 source('DHS_sampler.R')
+source('DHS_sampler_MA.R')
 
 
 
