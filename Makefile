@@ -17,6 +17,7 @@ HMD = $(patsubst %.Rmd,%.hmd,$(RmdFILES))
 DOCX = $(patsubst %.Rmd,%.Dmd,$(RmdFILES))
 
 TARGET = DHS
+TARGET = DHS_MA
 PANDOC_ARGS=-s -S -i --template='/home/murray/Work/Resources/Scripts/pandoc/template' --bibliography='/home/murray/Work/Resources/References/References.bib' --reference-links 
 PANDOC_SC_ARGS =-s -S -i --template='/home/murray/Resources/Scripts/pandoc/template_sc' --bibliography='/home/murray/Work/Resources/References/References.bib'  --reference-links  --self-contained #--csl '/home/murray/Work/Resources/References/oecologia.csl'
 PANDOC_XELATEX_ARGS = --filter pandoc-fignos -s --template='default' --bibliography='/home/murray/Work/Resources/References/References.bib' --reference-links -N --pdf-engine=xelatex --toc #--csl '/home/murray/Work/Resources/References/oecologia.csl' 
@@ -67,11 +68,12 @@ docx: $(DOCX)
 ifeq ($(HIDE),TRUE)
 	sed -i '/<div class=\"hidden\".*>/,/^<\/div class=\"hidden\">/d' $(TMP)
 endif
-	$(PANDOC) $(PANDOC_XELATEX_ARGS) -f 'markdown' *.lmd -o $(TARGET).tex
+	$(PANDOC) $(PANDOC_XELATEX_ARGS) -f 'markdown' $(TARGET).lmd -o $(TARGET).tex
 
 pdf: $(TEX) #$(TARGET).tex
 	sed -i 's/includegraphics{images/includegraphics\[width=\\maxwidth\]{images/g' $(TARGET).tex
 	sed -i 's/\\centering/\\centering\\scriptsize/g' $(TARGET).tex #indicate smaller font for tables
+	sed -i 's/\\usepackage{grffile}//g' $(TARGET).tex #remove this package it seems to be interfering with ability to include png figures
 	xelatex $(XELATEX_ARGS) $(TARGET).tex
 	xelatex $(XELATEX_ARGS) $(TARGET).tex
 	xelatex $(XELATEX_ARGS) $(TARGET).tex

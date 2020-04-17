@@ -256,7 +256,32 @@ dat = waves_ubot.middle_arm.df %>% gather(key=Variable, value=Value,-x,-y)
 dat = dat %>% group_by(Variable) %>% nest() %>%
     mutate(g=map2(data, Variable, plot_func))
 grid.arrange(grobs=dat$g)
-ggsave(filename='output/waves_ubot_middle_arm.pdf', grid.arrange(grobs=dat$g), width=11, height=7)
-ggsave(filename='output/waves_ubot_middle_arm.png', grid.arrange(grobs=dat$g), width=11, height=7, units='in', dpi=300)
+ggsave(filename='output/waves_ubot_middle_arm.pdf', grid.arrange(grobs=dat$g), width=11, height=10.5)
+ggsave(filename='output/waves_ubot_middle_arm.png', grid.arrange(grobs=dat$g), width=11, height=10.5, units='in', dpi=300)
 
+## ----end
+
+
+## ---- Grain size (Mainly inner harbour)
+grainsize = read_csv('data/primary/grainsize.csv', trim_ws=TRUE)
+head(grainsize)
+
+nms=names(grainsize)[-1]
+grainsize = grainsize %>% gather(key=Size,value=Value, -SampleName) %>%
+    mutate(Size=gsub('\\(','\n(',Size),
+           Size=gsub('%','',Size),
+           Size=factor(Size, levels=unique(Size)))
+grainsize %>% group_by(Size) %>% summarise(mean(Value, na.rm=TRUE))
+
+## merge with sites and split into Inner and Outer harbour
+grainsize = grainsize %>% left_join(sites_MA %>% dplyr::select(SampleName=Sample, Area)) %>% filter(!is.na(Area))
+g=ggplot() +
+    geom_boxplot(data=grainsize, aes(y=Value, x=Size)) +
+    scale_y_continuous('% Abundance in sediments') +
+    scale_x_discrete('Grain size category')+
+    theme_bw()
+ggsave(filename='output/particle_sizes_MA.pdf', g, width=8, height=3)
+ggsave(filename='output/particle_sizes_MA.png', g, width=6, height=2, units='in', dpi=300)
+
+    #geom_density(data=grainsize, aes(x=Value, fill=Size))
 ## ----end

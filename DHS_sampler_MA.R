@@ -454,7 +454,7 @@ spatiallybalanced2.design_50_MA = spatiallybalanced.data2.best %>% filter(N==50)
 write_csv(spatiallybalanced2.design_50_MA, path='output/spatiallybalanced2.design_50_MA.csv')
 
 g=ggplot() +
-    geom_point(data=spatiallybalanced2.design_100, aes(y=Latitude, x=Longitude)) +
+    geom_point(data=spatiallybalanced2.design_100_MA, aes(y=Latitude, x=Longitude)) +
     geom_polygon(data=middle_arm.df, aes(y=lat, x=long, group=group), fill=NA, color='black') +
     theme_bw() +
     theme(axis.title.x=element_blank(),axis.title.y=element_blank())+
